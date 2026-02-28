@@ -30,8 +30,8 @@ option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
 ### INFO: When LV_BUILD_SET_CONFIG_OPTS is enabled - these options are set automatically
 ### based on lv_conf.h or Kconfig
 
-option(CONFIG_LV_BUILD_DEMOS "Build demos" ON)
-option(CONFIG_LV_BUILD_EXAMPLES "Build examples" ON)
+option(CONFIG_LV_BUILD_DEMOS "Build demos" OFF)
+option(CONFIG_LV_BUILD_EXAMPLES "Build examples" OFF)
 option(CONFIG_LV_USE_THORVG_INTERNAL "Use the internal version of ThorVG" ON)
 option(CONFIG_LV_USE_PRIVATE_API "If set - install the private headers" OFF)
 

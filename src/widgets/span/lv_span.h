@@ -155,14 +155,6 @@ void lv_spangroup_set_span_text_static(lv_obj_t * obj, lv_span_t * span, const c
 void lv_spangroup_set_span_text_fmt(lv_obj_t * obj, lv_span_t * span, const char * fmt, ...) LV_FORMAT_ATTRIBUTE(3, 4);
 
 /**
- * Set a static text. It will not be saved by the span so the 'text' variable
- * has to be 'alive' while the span exist.
- * @param span  pointer to a span.
- * @param text  pointer to a text.
- */
-void lv_span_set_text_static(lv_span_t * span, const char * text);
-
-/**
  * Copy all style properties of style to the bbuilt-in static style of the span.
  * @param obj       pointer_to a spangroup
  * @param span      pointer to a span.

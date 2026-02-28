@@ -133,8 +133,6 @@ static void lv_menu_value_changed_event_cb(lv_event_t * e);
 /**********************
  *   GLOBAL FUNCTIONS
  **********************/
-void lv_menu_clear_history(lv_obj_t * obj);
-
 lv_obj_t * lv_menu_create(lv_obj_t * parent)
 {
     LV_LOG_INFO("begin");
