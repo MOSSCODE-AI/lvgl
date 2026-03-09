@@ -255,7 +255,7 @@ static int32_t evaluate(lv_draw_unit_t * draw_unit, lv_draw_task_t * task)
     LV_UNUSED(draw_unit);
 
     switch(task->type) {
-        case LV_DRAW_TASK_TYPE_FILL:
+        case LV_DRAW_TASK_TYPE_FILL: {
             lv_draw_fill_dsc_t * draw_dsc_fill = task->draw_dsc;
 
             if(draw_dsc_fill->grad.dir == LV_GRAD_DIR_RADIAL ||
@@ -271,6 +271,7 @@ static int32_t evaluate(lv_draw_unit_t * draw_unit, lv_draw_task_t * task)
             task->preference_score = 10;
             task->preferred_draw_unit_id = DRAW_UNIT_ID_AMBIQ;
             break;
+        }
         case LV_DRAW_TASK_TYPE_BORDER:
             task->preference_score = 10;
             task->preferred_draw_unit_id = DRAW_UNIT_ID_AMBIQ;
@@ -279,7 +280,7 @@ static int32_t evaluate(lv_draw_unit_t * draw_unit, lv_draw_task_t * task)
             task->preference_score = 10;
             task->preferred_draw_unit_id = DRAW_UNIT_ID_AMBIQ;
             break;
-        case LV_DRAW_TASK_TYPE_TRIANGLE:
+        case LV_DRAW_TASK_TYPE_TRIANGLE: {
             //return 0;
             lv_draw_triangle_dsc_t * draw_dsc_tri = task->draw_dsc;
 
@@ -295,6 +296,7 @@ static int32_t evaluate(lv_draw_unit_t * draw_unit, lv_draw_task_t * task)
             task->preference_score = 10;
             task->preferred_draw_unit_id = DRAW_UNIT_ID_AMBIQ;
             break;
+        }
         case LV_DRAW_TASK_TYPE_LINE:
             task->preference_score = 10;
             task->preferred_draw_unit_id = DRAW_UNIT_ID_AMBIQ;
@@ -310,7 +312,7 @@ static int32_t evaluate(lv_draw_unit_t * draw_unit, lv_draw_task_t * task)
             task->preferred_draw_unit_id = DRAW_UNIT_ID_AMBIQ;
             break;
 
-        case LV_DRAW_TASK_TYPE_IMAGE:
+        case LV_DRAW_TASK_TYPE_IMAGE: {
             lv_draw_image_dsc_t * draw_dsc_image = task->draw_dsc;
 
             nema_tex_format_t nema_cf = lv_ambiq_color_format_map_src(draw_dsc_image->header.cf);
@@ -327,6 +329,7 @@ static int32_t evaluate(lv_draw_unit_t * draw_unit, lv_draw_task_t * task)
             task->preference_score = 10;
             task->preferred_draw_unit_id = DRAW_UNIT_ID_AMBIQ;
             break;
+        }
 
         case LV_DRAW_TASK_TYPE_LABEL:
             task->preference_score = 10;

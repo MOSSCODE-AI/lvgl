@@ -180,7 +180,7 @@ static void LV_ATTRIBUTE_FAST_MEM draw_letter_cb(lv_draw_task_t * t, lv_draw_gly
             case LV_FONT_GLYPH_FORMAT_A2:
             case LV_FONT_GLYPH_FORMAT_A3:
             case LV_FONT_GLYPH_FORMAT_A4:
-            case LV_FONT_GLYPH_FORMAT_A8:
+            case LV_FONT_GLYPH_FORMAT_A8: {
 
                 const lv_font_t * font = glyph_draw_dsc->g->resolved_font;
                 lv_font_fmt_txt_dsc_t * fdsc = (lv_font_fmt_txt_dsc_t *)font->dsc;
@@ -257,6 +257,7 @@ static void LV_ATTRIBUTE_FAST_MEM draw_letter_cb(lv_draw_task_t * t, lv_draw_gly
                     cpu_gpu_sync = true;
                 }
                 break;
+            }
 
 
             case LV_FONT_GLYPH_FORMAT_IMAGE: {
