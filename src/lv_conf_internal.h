@@ -2135,6 +2135,18 @@
     #endif
 #endif
 
+#ifndef LV_USE_ARCLABEL
+    #ifdef LV_KCONFIG_PRESENT
+        #ifdef CONFIG_LV_USE_ARCLABEL
+            #define LV_USE_ARCLABEL CONFIG_LV_USE_ARCLABEL
+        #else
+            #define LV_USE_ARCLABEL 0
+        #endif
+    #else
+        #define LV_USE_ARCLABEL  1
+    #endif
+#endif
+
 #ifndef LV_USE_BAR
     #ifdef LV_KCONFIG_PRESENT
         #ifdef CONFIG_LV_USE_BAR

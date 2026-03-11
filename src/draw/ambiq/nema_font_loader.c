@@ -11,7 +11,15 @@
 #include "nema_font_loader.h"
 #include <string.h>
 #include <math.h> // For ceilf
-#include "gpu_patch.h"
+#if defined(__has_include)
+    #if __has_include("gpu_patch.h")
+        #include "gpu_patch.h"
+    #else
+        #include "../../../../lvgl_ambiq_porting/gpu_patch.h"
+    #endif
+#else
+    #include "../../../../lvgl_ambiq_porting/gpu_patch.h"
+#endif
 #include "am_mem.h"
 
 // --- Defines ---

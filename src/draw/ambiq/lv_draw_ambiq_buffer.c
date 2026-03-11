@@ -84,16 +84,29 @@ extern void nema_buffer_invalidate(nema_buffer_t * bo);
 
 
 
+static inline uint32_t lv_draw_ambiq_buffer_normalize_pool(uint32_t pool)
+{
+#if defined(NEMA_MEM_POOL_ASSETS) && defined(NEMA_MEM_POOL_FB) && (NEMA_MEM_POOL_ASSETS != NEMA_MEM_POOL_FB)
+    if(pool == NEMA_MEM_POOL_ASSETS) {
+        return NEMA_MEM_POOL_FB;
+    }
+#endif
+
+    return pool;
+}
+
 static inline void * lv_draw_ambiq_buffer_malloc_core(uint32_t pool, size_t size, lv_color_format_t color_format)
 {
     LV_UNUSED(color_format);
     nema_buffer_t buf;
+    pool = lv_draw_ambiq_buffer_normalize_pool(pool);
     buf = nema_buffer_create_pool(pool, size);
     return buf.base_virt;
 }
 
 static inline void lv_draw_ambiq_buffer_free_core(uint32_t pool, void * buf)
 {
+    pool = lv_draw_ambiq_buffer_normalize_pool(pool);
     nema_buffer_t nema_buf = {
         .base_virt = buf,
         .base_phys = (uintptr_t)buf,
@@ -128,6 +141,8 @@ static uint32_t lv_draw_ambiq_buffer_width_to_stride(uint32_t w, lv_color_format
 static inline void lv_draw_ambiq_buffer_flush_core(uint32_t pool, const lv_draw_buf_t * draw_buf,
                                                    const lv_area_t * area)
 {
+    pool = lv_draw_ambiq_buffer_normalize_pool(pool);
+
     if(!(draw_buf->header.flags & LV_IMAGE_FLAGS_ALLOCATED)) {
         // It is static buffer, no need to flush
         return;
@@ -147,6 +162,8 @@ static inline void lv_draw_ambiq_buffer_flush_core(uint32_t pool, const lv_draw_
 
 static void lv_draw_ambiq_buffer_invalidate_core(uint32_t pool, const lv_draw_buf_t * draw_buf, const lv_area_t * area)
 {
+    pool = lv_draw_ambiq_buffer_normalize_pool(pool);
+
     nema_buffer_t nema_buf = {
         .base_virt = draw_buf->data,
         .base_phys = (uintptr_t)draw_buf->data,
