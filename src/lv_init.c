@@ -50,6 +50,9 @@
 #if LV_USE_NEMA_GFX
     #include "draw/nema_gfx/lv_draw_nema_gfx.h"
 #endif
+#if LV_USE_DRAW_AMBIQ
+    #include "draw/ambiq/lv_draw_ambiq.h"
+#endif
 #if LV_USE_PXP
     #if LV_USE_DRAW_PXP || LV_USE_ROTATE_PXP
         #include "draw/nxp/pxp/lv_draw_pxp.h"
@@ -239,6 +242,10 @@ void lv_init(void)
 
 #if LV_USE_NEMA_GFX
     lv_draw_nema_gfx_init();
+#endif
+
+#if LV_USE_DRAW_AMBIQ
+    lv_draw_ambiq_init();
 #endif
 
 #if LV_USE_PXP
@@ -499,6 +506,10 @@ void lv_deinit(void)
 
 #if LV_USE_DRAW_OPENGLES
     lv_draw_opengles_deinit();
+#endif
+
+#if LV_USE_DRAW_AMBIQ
+    lv_draw_ambiq_deinit();
 #endif
 
 #if LV_USE_DRAW_SW
