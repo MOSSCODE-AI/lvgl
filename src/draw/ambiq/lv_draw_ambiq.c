@@ -578,6 +578,15 @@ static int32_t evaluate(lv_draw_unit_t * draw_unit, lv_draw_task_t * task)
         case LV_DRAW_TASK_TYPE_IMAGE: {
             lv_draw_image_dsc_t * draw_dsc_image = task->draw_dsc;
 
+            /* Indexed images, especially I1 canvas content used by QR codes,
+             * are more reliable through the software draw unit on Apollo510.
+             * Let SW handle them instead of forcing the Ambiq image path. */
+            if(LV_COLOR_FORMAT_IS_INDEXED(draw_dsc_image->header.cf)) {
+                platform_log_println("[GPU_DIAG] ambiq skip indexed image cf=%u -> SW",
+                                     (unsigned int)draw_dsc_image->header.cf);
+                return 0;
+            }
+
             nema_tex_format_t nema_cf = lv_ambiq_color_format_map_src(draw_dsc_image->header.cf);
             if(nema_cf == COLOR_FORMAT_INVALID) {
                 return 0;

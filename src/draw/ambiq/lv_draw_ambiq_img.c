@@ -57,6 +57,7 @@
 #include "../../misc/lv_color.h"
 #include "../../stdlib/lv_string.h"
 #include "../../core/lv_global.h"
+#include "memory/nema_custom_malloc.h"
 
 /*********************
  *      DEFINES
@@ -72,6 +73,11 @@
 static void lv_draw_ambiq_image_core(lv_draw_task_t * t,
                                      const lv_draw_image_dsc_t * draw_dsc,
                                      const lv_area_t * coords);
+static bool lv_ambiq_image_data_needs_staging(const lv_draw_buf_t * decoded);
+static lv_result_t lv_ambiq_stage_image_data(const lv_draw_buf_t * decoded,
+                                             nema_buffer_t * staged_bo,
+                                             lv_draw_buf_t * staged_buf,
+                                             const lv_draw_buf_t ** gpu_ready_buf);
 
 /**********************
  *  STATIC VARIABLES
@@ -150,6 +156,69 @@ void lv_draw_ambiq_image(lv_draw_task_t * t, const lv_draw_image_dsc_t * draw_ds
  *   STATIC FUNCTIONS
  **********************/
 
+static bool lv_ambiq_image_data_needs_staging(const lv_draw_buf_t * decoded)
+{
+    static const uintptr_t kApolloMramStart = 0x00400000UL;
+    static const uintptr_t kApolloMramEnd = kApolloMramStart + (4UL * 1024UL * 1024UL);
+
+    if(decoded == NULL || decoded->data == NULL || decoded->data_size == 0U) {
+        return false;
+    }
+
+    uintptr_t start = (uintptr_t)decoded->data;
+    uintptr_t end = start + decoded->data_size;
+
+    return (start >= kApolloMramStart) && (end <= kApolloMramEnd);
+}
+
+static lv_result_t lv_ambiq_stage_image_data(const lv_draw_buf_t * decoded,
+                                             nema_buffer_t * staged_bo,
+                                             lv_draw_buf_t * staged_buf,
+                                             const lv_draw_buf_t ** gpu_ready_buf)
+{
+    LV_ASSERT_NULL(staged_bo);
+    LV_ASSERT_NULL(staged_buf);
+    LV_ASSERT_NULL(gpu_ready_buf);
+
+    *gpu_ready_buf = decoded;
+    lv_memzero(staged_bo, sizeof(*staged_bo));
+    lv_memzero(staged_buf, sizeof(*staged_buf));
+
+    if(!lv_ambiq_image_data_needs_staging(decoded)) {
+        return LV_RESULT_OK;
+    }
+
+    staged_bo->base_virt = nema_custom_malloc_assets(decoded->data_size);
+    if(staged_bo->base_virt == NULL) {
+        LV_LOG_ERROR("Failed to allocate staged image buffer");
+        return LV_RESULT_INVALID;
+    }
+
+    staged_bo->base_phys = (uintptr_t)staged_bo->base_virt;
+    staged_bo->size = (int)decoded->data_size;
+    staged_bo->fd = NEMA_MEM_POOL_ASSETS;
+
+    if(staged_bo->size < (int)decoded->data_size) {
+        nema_custom_free_assets(staged_bo->base_virt);
+        staged_bo->base_virt = NULL;
+        staged_bo->base_phys = 0U;
+        staged_bo->size = 0;
+        staged_bo->fd = 0;
+        LV_LOG_ERROR("Failed to allocate staged image buffer");
+        return LV_RESULT_INVALID;
+    }
+
+    lv_memcpy(staged_bo->base_virt, decoded->data, decoded->data_size);
+    nema_custom_flush_range(staged_bo->base_virt, decoded->data_size);
+
+    *staged_buf = *decoded;
+    staged_buf->data = (uint8_t *)staged_bo->base_virt;
+    staged_buf->unaligned_data = staged_bo->base_virt;
+    *gpu_ready_buf = staged_buf;
+
+    return LV_RESULT_OK;
+}
+
 static void lv_draw_ambiq_image_core(lv_draw_task_t * t,
                                      const lv_draw_image_dsc_t * draw_dsc,
                                      const lv_area_t * coords)
@@ -184,14 +253,27 @@ static void lv_draw_ambiq_image_core(lv_draw_task_t * t,
         return;
     }
 
+    nema_buffer_t staged_image_bo;
+    lv_draw_buf_t staged_image_buf;
+    const lv_draw_buf_t * gpu_image = decoder_dsc.decoded;
+    res = lv_ambiq_stage_image_data(decoder_dsc.decoded, &staged_image_bo, &staged_image_buf, &gpu_image);
+    if(res != LV_RESULT_OK) {
+        lv_image_decoder_close(&decoder_dsc);
+        return;
+    }
+
     // bind the image texture
     uint32_t color_rgba = lv_ambiq_color_convert(draw_dsc->recolor, draw_dsc->opa);
-    uint32_t blend_op_tex = lv_draw_ambiq_bind_image_texture(decoder_dsc.decoded, color_rgba, tex_wrap_mode);
+    uint32_t blend_op_tex = lv_draw_ambiq_bind_image_texture(gpu_image, color_rgba, tex_wrap_mode);
 
     // decode the mask texture
     lv_image_decoder_dsc_t mask_decoder_dsc;
     bool need_release_mask_decoder = false;
     const lv_draw_buf_t * mask_img = NULL;
+    nema_buffer_t staged_mask_bo;
+    lv_draw_buf_t staged_mask_buf;
+    lv_memzero(&staged_mask_bo, sizeof(staged_mask_bo));
+    lv_memzero(&staged_mask_buf, sizeof(staged_mask_buf));
     if(draw_dsc->bitmap_mask_src) {
 
         res = lv_draw_ambiq_decode_image(draw_dsc->bitmap_mask_src, false, &mask_decoder_dsc, true);
@@ -201,7 +283,17 @@ static void lv_draw_ambiq_image_core(lv_draw_task_t * t,
         else {
             if((mask_decoder_dsc.decoded->header.w == draw_dsc->header.w) &&
                (mask_decoder_dsc.decoded->header.h == draw_dsc->header.h)) {
-                mask_img = mask_decoder_dsc.decoded;
+                const lv_draw_buf_t * gpu_mask_img = mask_decoder_dsc.decoded;
+                res = lv_ambiq_stage_image_data(mask_decoder_dsc.decoded,
+                                                &staged_mask_bo,
+                                                &staged_mask_buf,
+                                                &gpu_mask_img);
+                if(res == LV_RESULT_OK) {
+                    mask_img = gpu_mask_img;
+                }
+                else {
+                    LV_LOG_WARN("MASK image staging failed. Drawing the image without mask.");
+                }
             }
             else {
                 LV_LOG_WARN("GPU limitation, mask size should be same as the texture size or the framebuffer size! draw it without mask.");
@@ -384,8 +476,14 @@ static void lv_draw_ambiq_image_core(lv_draw_task_t * t,
     nema_cl_rewind(current_cl);
 
     lv_image_decoder_close(&decoder_dsc);
+    if(staged_image_bo.base_virt != NULL) {
+        nema_custom_free_assets(staged_image_bo.base_virt);
+    }
     if(need_release_mask_decoder) {
         lv_image_decoder_close(&mask_decoder_dsc);
+        if(staged_mask_bo.base_virt != NULL) {
+            nema_custom_free_assets(staged_mask_bo.base_virt);
+        }
     }
 
 }

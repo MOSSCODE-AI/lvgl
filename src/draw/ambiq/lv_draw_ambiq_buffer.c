@@ -100,7 +100,9 @@ static inline void * lv_draw_ambiq_buffer_malloc_core(uint32_t pool, size_t size
     LV_UNUSED(color_format);
     nema_buffer_t buf;
     pool = lv_draw_ambiq_buffer_normalize_pool(pool);
-    buf = nema_buffer_create_pool(pool, size);
+    /* Reserve alignment slack because lv_draw_buf_align() can advance the raw
+     * pointer by up to LV_DRAW_BUF_ALIGN - 1 bytes. */
+    buf = nema_buffer_create_pool(pool, size + LV_DRAW_BUF_ALIGN - 1U);
     return buf.base_virt;
 }
 

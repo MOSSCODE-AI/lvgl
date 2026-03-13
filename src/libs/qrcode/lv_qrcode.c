@@ -69,13 +69,14 @@ void lv_qrcode_set_size(lv_obj_t * obj, int32_t size)
         return;
     }
 
-    lv_canvas_set_draw_buf(obj, new_buf);
-    LV_LOG_INFO("set canvas buffer: %p, size = %d", (void *)new_buf, (int)size);
-
     /*Clear canvas buffer*/
     lv_draw_buf_clear(new_buf, NULL);
 
-    if(old_buf != NULL) lv_draw_buf_destroy(old_buf);
+    lv_canvas_set_draw_buf(obj, new_buf);
+
+    if(old_buf != NULL) {
+        lv_draw_buf_destroy(old_buf);
+    }
 }
 
 void lv_qrcode_set_dark_color(lv_obj_t * obj, lv_color_t color)
@@ -196,8 +197,9 @@ lv_result_t lv_qrcode_update(lv_obj_t * obj, const void * data, uint32_t data_le
         }
     }
 
-    /* invalidate the canvas to refresh it */
+    /* Invalidate after reenabling display invalidation so the first paint is not lost. */
     lv_display_enable_invalidation(lv_obj_get_display(obj), true);
+    lv_obj_invalidate(obj);
 
     lv_free(qr0);
     lv_free(data_tmp);
@@ -224,12 +226,10 @@ static void lv_qrcode_constructor(const lv_obj_class_t * class_p, lv_obj_t * obj
 {
     LV_UNUSED(class_p);
 
-    /*Set default size*/
-    lv_qrcode_set_size(obj, LV_DPI_DEF);
-
     /*Set default color*/
     lv_qrcode_set_dark_color(obj, lv_color_black());
     lv_qrcode_set_light_color(obj, lv_color_white());
+    ((lv_qrcode_t *)obj)->quiet_zone = 0;
 }
 
 static void lv_qrcode_destructor(const lv_obj_class_t * class_p, lv_obj_t * obj)
