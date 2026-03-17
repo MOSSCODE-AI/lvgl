@@ -50,6 +50,7 @@
 #if LV_USE_DRAW_AMBIQ
 #include "lv_draw_ambiq.h"
 #include "lv_draw_ambiq_private.h"
+#include "platform/bsp/debug.h"
 #include "../../misc/lv_log.h"
 #include "../../core/lv_refr_private.h"
 #include "../../stdlib/lv_mem.h"
@@ -380,7 +381,16 @@ static void lv_draw_ambiq_image_core(lv_draw_task_t * t,
 
     nema_cmdlist_t * current_cl = nema_cl_get_bound();
     nema_cl_submit(current_cl);
-    nema_cl_wait(current_cl);
+
+    /* Work around cold-boot GPU IRQ issue: nema_cl_wait() can deadlock because
+     * the GPU completion interrupt may not fire on the first image blit after a
+     * power-on reset, even though the GPU completes the operation normally.
+     * Poll NEMA_STATUS directly instead of relying on the interrupt-based
+     * nema_cl_wait() which lives in the pre-compiled NemaGFX binary. */
+    while(nema_reg_read(NEMA_STATUS) != 0) {
+        /* busy-wait for GPU idle */
+    }
+
     nema_cl_rewind(current_cl);
 
     lv_image_decoder_close(&decoder_dsc);
