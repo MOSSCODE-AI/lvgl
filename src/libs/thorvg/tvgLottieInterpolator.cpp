@@ -130,7 +130,7 @@ float LottieInterpolator::progress(float t)
 
 void LottieInterpolator::set(const char* key, Point& inTangent, Point& outTangent)
 {
-    this->key = lv_strdup(key);
+    this->key = key ? lv_strdup(key) : nullptr;
     this->inTangent = inTangent;
     this->outTangent = outTangent;
 
@@ -143,4 +143,3 @@ void LottieInterpolator::set(const char* key, Point& inTangent, Point& outTangen
 }
 
 #endif /* LV_USE_THORVG_INTERNAL */
-

@@ -158,6 +158,19 @@ lv_anim_t * lv_lottie_get_anim(lv_obj_t * obj)
     return lottie->anim;
 }
 
+void lv_lottie_set_frame(lv_obj_t * obj, int32_t frame)
+{
+    LV_ASSERT_OBJ(obj, MY_CLASS);
+    lv_lottie_t * lottie = (lv_lottie_t *)obj;
+
+    if(frame < 0) frame = 0;
+    if(lottie->anim) {
+        lottie->anim->current_value = frame;
+    }
+
+    lottie_update(lottie, frame);
+}
+
 /**********************
  *   STATIC FUNCTIONS
  **********************/

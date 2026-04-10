@@ -390,18 +390,23 @@ bool LottieParser::parseTangent(const char *key, LottieScalarFrame<T>& value)
 
 LottieInterpolator* LottieParser::getInterpolator(const char* key, Point& in, Point& out)
 {
-    char buf[20];
-
-    if (!key) {
-        snprintf(buf, sizeof(buf), "%.2f_%.2f_%.2f_%.2f", in.x, in.y, out.x, out.y);
-        key = buf;
-    }
-
     LottieInterpolator* interpolator = nullptr;
 
     //get a cached interpolator if it has any.
     for (auto i = comp->interpolators.begin(); i < comp->interpolators.end(); ++i) {
-        if (!strncmp((*i)->key, key, sizeof(buf))) interpolator = *i;
+        if (key) {
+            if ((*i)->key && !strcmp((*i)->key, key)) {
+                interpolator = *i;
+                break;
+            }
+        } else {
+            if (!(*i)->key &&
+                (*i)->inTangent.x == in.x && (*i)->inTangent.y == in.y &&
+                (*i)->outTangent.x == out.x && (*i)->outTangent.y == out.y) {
+                interpolator = *i;
+                break;
+            }
+        }
     }
 
     //new interpolator
@@ -1516,4 +1521,3 @@ bool LottieParser::parse()
 }
 
 #endif /* LV_USE_THORVG_INTERNAL */
-

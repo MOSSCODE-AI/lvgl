@@ -85,6 +85,14 @@ void lv_lottie_set_src_file(lv_obj_t * obj, const char * src);
  */
 lv_anim_t * lv_lottie_get_anim(lv_obj_t * obj);
 
+/**
+ * Render the animation at a specific frame immediately.
+ * Useful when the application wants to freeze the animation on its last frame.
+ * @param obj       pointer to a lottie widget
+ * @param frame     frame index to render
+ */
+void lv_lottie_set_frame(lv_obj_t * obj, int32_t frame);
+
 /**********************
  * GLOBAL VARIABLES
  **********************/

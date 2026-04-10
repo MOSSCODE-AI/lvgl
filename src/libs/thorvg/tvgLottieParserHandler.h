@@ -45,8 +45,21 @@
  * SOFTWARE.
  */
 
+#ifndef RAPIDJSON_ASSERT
+    #ifdef NDEBUG
+        #define RAPIDJSON_ASSERT(x) ((void)0)
+    #else
+        #include <cassert>
+        #define RAPIDJSON_ASSERT(x) assert(x)
+    #endif
+#endif
+
 #ifndef _TVG_LOTTIE_PARSER_HANDLER_H_
 #define _TVG_LOTTIE_PARSER_HANDLER_H_
+
+#ifndef RAPIDJSON_ASSERT
+#define RAPIDJSON_ASSERT(x) ((void)0)
+#endif
 
 #include "rapidjson/document.h"
 #include "tvgCommon.h"
@@ -203,4 +216,3 @@ struct LookaheadParserHandler
 #endif //_TVG_LOTTIE_PARSER_HANDLER_H_
 
 #endif /* LV_USE_THORVG_INTERNAL */
-

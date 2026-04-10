@@ -28,13 +28,16 @@
 
 #include "config.h"
 #include "thorvg.h"
-#include <mutex>
 
 // using namespace std;
 using std::string;
 
-using std::lock_guard;
 using std::unique_ptr;
+
+#ifdef THORVG_THREAD_SUPPORT
+#include <mutex>
+using std::lock_guard;
+#endif
 
 using namespace tvg;
 
@@ -102,4 +105,3 @@ static inline double THORVG_TIMESTAMP()
 #endif //_TVG_COMMON_H_
 
 #endif /* LV_USE_THORVG_INTERNAL */
-

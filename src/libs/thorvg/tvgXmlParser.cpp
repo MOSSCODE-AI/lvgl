@@ -29,7 +29,7 @@
 
 #ifdef _WIN32
     #include <malloc.h>
-#elif defined(__linux__)
+#elif defined(__GNUC__) || defined(__clang__)
     #include <alloca.h>
 #else
     #include <stdlib.h>
@@ -594,4 +594,3 @@ const char* simpleXmlFindAttributesTag(const char* buf, unsigned bufLength)
 }
 
 #endif /* LV_USE_THORVG_INTERNAL */
-

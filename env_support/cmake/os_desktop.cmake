@@ -215,6 +215,13 @@ if(CONFIG_LV_USE_THORVG_INTERNAL)
     target_include_directories(lvgl_thorvg PRIVATE ${LVGL_ROOT_DIR}/src/libs/thorvg)
     set_target_properties(lvgl_thorvg PROPERTIES COMPILE_DEFINITIONS "${COMP_DEF}")
 
+    if(CMAKE_CXX_COMPILER MATCHES "arm-none-eabi")
+        target_compile_options(lvgl_thorvg PRIVATE
+            $<$<COMPILE_LANGUAGE:CXX>:-mcpu=cortex-m55+nomve>
+            $<$<COMPILE_LANGUAGE:CXX>:-mfpu=fpv5-sp-d16>
+            $<$<COMPILE_LANGUAGE:CXX>:-mfloat-abi=hard>)
+    endif()
+
     # This tells cmake to link lvgl with lvgl_thorvg
     # The linker will resolve all dependencies when dynamic linking 
     target_link_libraries(lvgl PRIVATE lvgl_thorvg)
