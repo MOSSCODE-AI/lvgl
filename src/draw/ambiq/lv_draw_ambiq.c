@@ -338,8 +338,6 @@ void lv_draw_ambiq_init(void)
     uint32_t hal_ret = AM_HAL_STATUS_SUCCESS;
     bool first_nema_init = !nema_backend_initialized;
 
-    RAW_LOGGER_PRINTLN("[DIAG] ambiq_draw_init BEGIN first=%d\r\n", first_nema_init);
-
     /* The upstream port assumes a prior SDK init path has already set its
      * internal ring-buffer sentinel. In this project LVGL is the first Nema
      * bring-up site, so keep an explicit local init flag instead. */
@@ -353,8 +351,6 @@ void lv_draw_ambiq_init(void)
         (void)am_hal_pwrctrl_periph_disable(AM_HAL_PWRCTRL_PERIPH_GFX);
         hal_ret = am_hal_pwrctrl_gpu_mode_select(AM_HAL_PWRCTRL_GPU_MODE_HIGH_PERFORMANCE);
         (void)am_hal_pwrctrl_gpu_mode_status(&current_mode);
-        RAW_LOGGER_PRINTLN("[DIAG] gpu_mode_select ret=%lu mode=%u\r\n",
-                           (unsigned long)hal_ret, (unsigned int)current_mode);
         if((hal_ret != AM_HAL_STATUS_SUCCESS) ||
            (current_mode != AM_HAL_PWRCTRL_GPU_MODE_HIGH_PERFORMANCE)) {
             LV_AMBIQ_DRAW_LOG("gpu hp mode select status=%lu mode=%u\r\n",
@@ -364,15 +360,12 @@ void lv_draw_ambiq_init(void)
 #endif
 
         hal_ret = nemagfx_power_control(AM_HAL_SYSCTRL_WAKE, false);
-        RAW_LOGGER_PRINTLN("[DIAG] nema_power_wake ret=%lu\r\n", (unsigned long)hal_ret);
         if(hal_ret != AM_HAL_STATUS_SUCCESS) {
             LV_LOG_ERROR("Power control failed: %d\r\n", hal_ret);
         }
 
         /* Initialize the NemaGFX (raster graphics) SDK. */
-        RAW_LOGGER_PRINTLN("[DIAG] nema_init calling...\r\n");
         nema_init();
-        RAW_LOGGER_PRINTLN("[DIAG] nema_init done err=%lu\r\n", (unsigned long)nema_get_error());
         if(NEMA_ERR_NO_ERROR != nema_get_error()) {
             LV_LOG_ERROR("NemaGFX initialization failed!");
         }
@@ -428,9 +421,6 @@ void lv_draw_ambiq_init(void)
     lv_memset(&draw_ambiq_unit->clip_area, 0, sizeof(lv_area_t));
 
     draw_ambiq_unit->cl = nema_cl_create_sized(LV_AMBIQ_COMMAND_LIST_SECTOR * LV_AMBIQ_COMMAND_LIST_SECTOR_SIZE);
-    RAW_LOGGER_PRINTLN("[DIAG] cl_create base=%p size=%lu\r\n",
-                       draw_ambiq_unit->cl.bo.base_virt,
-                       (unsigned long)draw_ambiq_unit->cl.bo.size);
     LV_ASSERT_NULL(draw_ambiq_unit->cl.bo.base_virt);
 
     //    lv_ll_init(&draw_ambiq_unit->inserted_cl_ll, sizeof(nema_cmdlist_t));
