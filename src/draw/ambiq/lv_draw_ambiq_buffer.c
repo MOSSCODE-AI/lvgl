@@ -86,12 +86,6 @@ extern void nema_buffer_invalidate(nema_buffer_t * bo);
 
 static inline uint32_t lv_draw_ambiq_buffer_normalize_pool(uint32_t pool)
 {
-#if defined(NEMA_MEM_POOL_ASSETS) && defined(NEMA_MEM_POOL_FB) && (NEMA_MEM_POOL_ASSETS != NEMA_MEM_POOL_FB)
-    if(pool == NEMA_MEM_POOL_ASSETS) {
-        return NEMA_MEM_POOL_FB;
-    }
-#endif
-
     return pool;
 }
 
@@ -106,6 +100,10 @@ static inline void * lv_draw_ambiq_buffer_malloc_core(uint32_t pool, size_t size
 
 static inline void lv_draw_ambiq_buffer_free_core(uint32_t pool, void * buf)
 {
+    if(buf == NULL) {
+        return;
+    }
+
     pool = lv_draw_ambiq_buffer_normalize_pool(pool);
     nema_buffer_t nema_buf = {
         .base_virt = buf,
@@ -114,7 +112,6 @@ static inline void lv_draw_ambiq_buffer_free_core(uint32_t pool, void * buf)
         .size = 0,/*not used in nema_buffer_destroy API*/
     };
 
-    LV_ASSERT_MSG(nema_buffer_is_within_pool(pool, (uint32_t)buf, 0), "Buffer is not within the pool");
     nema_buffer_destroy(&nema_buf);
 }
 
@@ -176,12 +173,28 @@ static void lv_draw_ambiq_buffer_invalidate_core(uint32_t pool, const lv_draw_bu
     nema_buffer_invalidate(&nema_buf);
 }
 
+static void lv_draw_ambiq_buffer_clean_indexed(lv_draw_buf_t * draw_buf, const lv_area_t * a)
+{
+    LV_UNUSED(a);
+
+    if(draw_buf->data == NULL) {
+        return;
+    }
+
+    lv_memzero(draw_buf->data, draw_buf->data_size);
+    lv_draw_ambiq_buffer_flush_core(NEMA_MEM_POOL_FB, draw_buf, NULL);
+}
 
 
 
 static void lv_draw_ambiq_buffer_clean(lv_draw_buf_t * draw_buf, const lv_area_t * a)
 {
     const lv_image_header_t * header = &draw_buf->header;
+
+    if(LV_COLOR_FORMAT_IS_INDEXED(header->cf) && a == NULL) {
+        lv_draw_ambiq_buffer_clean_indexed(draw_buf, a);
+        return;
+    }
 
     lv_area_t a_clipped;
     // If clip_area is NULL, we need to set the clip area to the whole screen.
