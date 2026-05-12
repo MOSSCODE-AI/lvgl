@@ -32,7 +32,7 @@ option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
 
 option(CONFIG_LV_BUILD_DEMOS "Build demos" OFF)
 option(CONFIG_LV_BUILD_EXAMPLES "Build examples" OFF)
-option(CONFIG_LV_USE_THORVG_INTERNAL "Use the internal version of ThorVG" ON)
+option(CONFIG_LV_USE_THORVG_INTERNAL "Use the internal version of ThorVG" OFF)
 option(CONFIG_LV_USE_PRIVATE_API "If set - install the private headers" OFF)
 
 ############################## BUILD ######################################
