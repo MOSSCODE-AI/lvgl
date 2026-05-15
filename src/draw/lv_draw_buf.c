@@ -170,6 +170,12 @@ void lv_draw_buf_clear(lv_draw_buf_t * draw_buf, const lv_area_t * a)
     LV_ASSERT_NULL(draw_buf);
     LV_PROFILER_DRAW_BEGIN;
 
+    const lv_draw_buf_handlers_t * handlers = draw_buf->handlers;
+    if(handlers->clear_cb) {
+        handlers->clear_cb(draw_buf, a);
+        return;
+    }
+
     const lv_image_header_t * header = &draw_buf->header;
     uint32_t stride = header->stride;
 
@@ -368,6 +374,15 @@ void lv_draw_buf_copy(lv_draw_buf_t * dest, const lv_area_t * dest_area,
     LV_ASSERT_NULL(dest->handlers);
     LV_ASSERT_NULL(dest->handlers->buf_copy_cb);
     LV_ASSERT_NULL(src);
+
+    
+    const lv_draw_buf_handlers_t * handlers = dest->handlers;
+    if(handlers->copy_cb) {
+        handlers->copy_cb(dest, dest_area, src, src_area);
+        return;
+    }
+
+
 
     dest->handlers->buf_copy_cb(dest, dest_area, src, src_area);
 }
