@@ -258,13 +258,20 @@ bool lv_font_get_glyph_dsc_fmt_txt(const lv_font_t * font, lv_font_glyph_dsc_t *
 
     if(fdsc->stride == 0) dsc_out->stride = 0;
     else {
-        /*E.g. w = 5, bpp = 2, means 2 bytes/line*/
-        uint32_t bit_count = dsc_out->box_w * fdsc->bpp;
-        uint32_t width_in_bytes = (bit_count + 7) >> 3; /*No division round up*/
+        // /*E.g. w = 5, bpp = 2, means 2 bytes/line*/
+        // uint32_t bit_count = dsc_out->box_w * fdsc->bpp;
+        // uint32_t width_in_bytes = (bit_count + 7) >> 3; /*No division round up*/
 
-        /*E.g. font_dsc stride == 4 means align to 4 byte boundary.
+        // /*E.g. font_dsc stride == 4 means align to 4 byte boundary.
+        //  *In glyph_dsc store the actual line length in bytes*/
+        // dsc_out->stride = LV_ROUND_UP(width_in_bytes, fdsc->stride);
+
+        uint32_t glyph_width_in_bits = dsc_out->box_w * fdsc->bpp;
+
+        uint32_t glyph_width_in_bytes = glyph_width_in_bits / 8 + ((glyph_width_in_bits % 8) ? 1 : 0);
+        /*e.g. font_dsc stride ==  4 means align to 4 byte boundary.
          *In glyph_dsc store the actual line length in bytes*/
-        dsc_out->stride = LV_ROUND_UP(width_in_bytes, fdsc->stride);
+        dsc_out->stride = LV_ROUND_UP(glyph_width_in_bytes, fdsc->stride);
     }
 
     dsc_out->format = (uint8_t)fdsc->bpp;
