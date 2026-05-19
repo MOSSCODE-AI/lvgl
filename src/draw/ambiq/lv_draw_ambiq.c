@@ -165,7 +165,7 @@ void lv_draw_ambiq_init(void)
 
     draw_ambiq_unit->nema_context_lock_count = 0;
 
-#ifdef LV_USE_AMBIQ_VG
+#if LV_USE_AMBIQ_VG
     lv_draw_ambiq_vector_font_init((lv_draw_unit_t *)draw_ambiq_unit);
 #endif
 
