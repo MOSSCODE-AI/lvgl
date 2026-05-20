@@ -41,7 +41,7 @@ struct _lv_image_t {
     uint32_t scale_x;       /**< 256 means no zoom, 512 double size, 128 half size*/
     uint32_t scale_y;       /**< 256 means no zoom, 512 double size, 128 half size*/
     lv_point_t pivot;       /**< Rotation center of the image*/
-    uint32_t src_type : 2;  /**< See: lv_image_src_t*/
+    uint32_t src_type : 3;  /**< See: lv_image_src_t*/
     uint32_t cf : 5;        /**< Color format from `lv_color_format_t`*/
     uint32_t antialias : 1; /**< Apply anti-aliasing in transformations (rotate, zoom)*/
     uint32_t align: 4;      /**< Image size mode when image size and object size is different. See lv_image_align_t*/

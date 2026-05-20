@@ -207,14 +207,14 @@ void lv_image_set_src(lv_obj_t * obj, const void * src)
         }
         img->src = src;
     }
-    else if(src_type == LV_IMAGE_SRC_FILE || src_type == LV_IMAGE_SRC_SYMBOL) {
+    else if(src_type == LV_IMAGE_SRC_FILE || src_type == LV_IMAGE_SRC_SYMBOL || src_type == LV_IMAGE_SRC_PSRAM) {
         /*If the new and the old src are the same then it was only a refresh.*/
         if(img->src != src) {
             const void * old_src = NULL;
             /*If memory was allocated because of the previous `src_type` then save its pointer and free after allocation.
              *It's important to allocate first to be sure the new data will be on a new address.
              *Else `img_cache` wouldn't see the change in source.*/
-            if(img->src_type == LV_IMAGE_SRC_FILE || img->src_type == LV_IMAGE_SRC_SYMBOL) {
+            if(img->src_type == LV_IMAGE_SRC_FILE || img->src_type == LV_IMAGE_SRC_SYMBOL || img->src_type == LV_IMAGE_SRC_PSRAM) {
                 old_src = img->src;
             }
             char * new_str = lv_strdup(src);
@@ -700,7 +700,7 @@ static void lv_image_destructor(const lv_obj_class_t * class_p, lv_obj_t * obj)
 {
     LV_UNUSED(class_p);
     lv_image_t * img = (lv_image_t *)obj;
-    if(img->src_type == LV_IMAGE_SRC_FILE || img->src_type == LV_IMAGE_SRC_SYMBOL) {
+    if(img->src_type == LV_IMAGE_SRC_FILE || img->src_type == LV_IMAGE_SRC_SYMBOL || img->src_type == LV_IMAGE_SRC_PSRAM) {
         lv_free((void *)img->src);
         img->src      = NULL;
         img->src_type = LV_IMAGE_SRC_UNKNOWN;
@@ -862,7 +862,7 @@ static void draw_image(lv_event_t * e)
 
         lv_layer_t * layer = lv_event_get_layer(e);
 
-        if(img->src_type == LV_IMAGE_SRC_FILE || img->src_type == LV_IMAGE_SRC_VARIABLE) {
+        if(img->src_type == LV_IMAGE_SRC_FILE || img->src_type == LV_IMAGE_SRC_VARIABLE || img->src_type == LV_IMAGE_SRC_PSRAM) {
             lv_draw_image_dsc_t draw_dsc;
             lv_draw_image_dsc_init(&draw_dsc);
             draw_dsc.base.layer = layer;
