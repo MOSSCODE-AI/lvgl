@@ -1031,7 +1031,7 @@ void lv_tlsf_remove_pool(lv_tlsf_t tlsf, lv_pool_t pool)
 */
 
 #if _DEBUG
-int test_ffs_fls()
+static int test_ffs_fls()
 {
     /* Verify ffs/fls work properly. */
     int rv = 0;

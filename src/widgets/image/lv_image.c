@@ -202,7 +202,7 @@ void lv_image_set_src(lv_obj_t * obj, const void * src)
         }
 
         /*If memory was allocated because of the previous `src_type` then free it*/
-        if(img->src_type == LV_IMAGE_SRC_FILE || img->src_type == LV_IMAGE_SRC_SYMBOL) {
+        if(img->src_type == LV_IMAGE_SRC_FILE || img->src_type == LV_IMAGE_SRC_SYMBOL || src_type == LV_IMAGE_SRC_PSRAM) {
             lv_free((void *)img->src);
         }
         img->src = src;
@@ -1037,7 +1037,7 @@ static void update_align(lv_obj_t * obj)
 static void reset_image_attributes(lv_obj_t * obj)
 {
     lv_image_t * img = (lv_image_t *)obj;
-    if(img->src_type == LV_IMAGE_SRC_SYMBOL || img->src_type == LV_IMAGE_SRC_FILE) {
+    if(img->src_type == LV_IMAGE_SRC_SYMBOL || img->src_type == LV_IMAGE_SRC_FILE || img->src_type == LV_IMAGE_SRC_PSRAM) {
         lv_free((void *)img->src);
     }
     img->src = NULL;

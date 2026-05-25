@@ -13,6 +13,7 @@ extern "C" {
 /*********************
  *      INCLUDES
  *********************/
+#include <stdint.h>
 #include "../../draw/lv_image_decoder.h"
 
 /*********************
@@ -22,6 +23,11 @@ extern "C" {
 /**********************
  *      TYPEDEFS
  **********************/
+typedef struct {
+    uint8_t * (*get_static_data)(void);
+    uint8_t * (*find_dynamic_data)(uint32_t hash);
+    void (*move_dynamic_to_head)(uint32_t hash);
+} lv_bin_decoder_psram_resource_provider_t;
 
 /**********************
  * GLOBAL PROTOTYPES
@@ -31,6 +37,12 @@ extern "C" {
  * Initialize the binary image decoder module
  */
 void lv_bin_decoder_init(void);
+
+/**
+ * Register an optional PSRAM resource provider for platform-specific image sources.
+ * Passing NULL disables PSRAM resource decoding while keeping other bin image sources available.
+ */
+void lv_bin_decoder_set_psram_resource_provider(const lv_bin_decoder_psram_resource_provider_t * provider);
 
 /**
  * Get PSRAM data pointer for binary image decoder (weak, can be overridden)

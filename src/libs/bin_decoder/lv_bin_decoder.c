@@ -87,6 +87,7 @@ static uint32_t psram_src_get_index(const void * src);
 /**********************
  *  STATIC VARIABLES
  **********************/
+static const lv_bin_decoder_psram_resource_provider_t * psram_resource_provider;
 
 /**********************
  *      MACROS
@@ -118,6 +119,11 @@ void lv_bin_decoder_init(void)
     decoder->name = DECODER_NAME;
 }
 
+void lv_bin_decoder_set_psram_resource_provider(const lv_bin_decoder_psram_resource_provider_t * provider)
+{
+    psram_resource_provider = provider;
+}
+
 lv_result_t lv_bin_decoder_info(lv_image_decoder_t * decoder, lv_image_decoder_dsc_t * dsc, lv_image_header_t * header)
 {
     LV_UNUSED(decoder); /*Unused*/
@@ -130,12 +136,32 @@ lv_result_t lv_bin_decoder_info(lv_image_decoder_t * decoder, lv_image_decoder_d
         lv_memcpy(header, &image->header, sizeof(lv_image_header_t));
     }
     else if(src_type == LV_IMAGE_SRC_PSRAM) {
-        uint32_t img_addr = psram_src_get_index(src);
-        if(img_addr == 0xffffffff) return LV_RESULT_INVALID;
-        const uint8_t * base = lv_bin_decoder_psram_data();
-        if(base == NULL) return LV_RESULT_INVALID;
-        lv_memcpy(header, base + img_addr, sizeof(lv_image_header_t));
 
+        const uint8_t * psram_src = (const uint8_t *)dsc->src;
+        if(psram_src[0] == 'D'){
+            uint32_t hash = psram_src_get_index(src);
+            if(psram_resource_provider == NULL || psram_resource_provider->find_dynamic_data == NULL) {
+                return LV_RESULT_INVALID;
+            }
+
+            uint8_t* base = psram_resource_provider->find_dynamic_data(hash);
+            if(base == NULL) {
+                return LV_RESULT_INVALID;
+            }
+            lv_memcpy(header, base, sizeof(lv_image_header_t));
+        }
+        else if(psram_src[0] == 'P')
+        {
+            uint32_t img_addr = psram_src_get_index(src);
+            if(img_addr == 0xffffffff) return LV_RESULT_INVALID;
+            if(psram_resource_provider == NULL || psram_resource_provider->get_static_data == NULL) {
+                return LV_RESULT_INVALID;
+            }
+
+            const uint8_t * base = psram_resource_provider->get_static_data();
+            if(base == NULL) return LV_RESULT_INVALID;
+            lv_memcpy(header, base + img_addr, sizeof(lv_image_header_t));
+        }
     }
     else if(src_type == LV_IMAGE_SRC_FILE) {
         /*Support only "*.bin" files*/
@@ -277,15 +303,41 @@ lv_result_t lv_bin_decoder_open(lv_image_decoder_t * decoder, lv_image_decoder_d
 
         lv_image_header_t header = {0};
         const uint8_t * psram_src = (const uint8_t *)dsc->src;
-        uint32_t img_addr = psram_src_get_index(psram_src);
-        if(img_addr == 0xffffffff) return LV_RESULT_INVALID;
-        const uint8_t * base = lv_bin_decoder_psram_data();
-        if(base == NULL) return LV_RESULT_INVALID;
-        lv_memcpy(&header, base + img_addr, sizeof(lv_image_header_t));
 
-        res = lv_draw_buf_init(decoded, header.w, header.h, header.cf, header.stride, \
-                                                (void *)(base + img_addr + sizeof(lv_image_header_t)), \
-                                                header.w * header.h * lv_color_format_get_bpp(header.cf) / 8);
+        if(psram_src[0] == 'D') {
+            uint32_t hash = psram_src_get_index(psram_src);
+            if(psram_resource_provider == NULL || psram_resource_provider->find_dynamic_data == NULL) {
+                return LV_RESULT_INVALID;
+            }
+
+            uint8_t* base = psram_resource_provider->find_dynamic_data(hash);
+            if(base == NULL) {
+                return LV_RESULT_INVALID;
+            }
+            if(psram_resource_provider->move_dynamic_to_head != NULL) {
+                psram_resource_provider->move_dynamic_to_head(hash);
+            }
+            lv_memcpy(&header, base, sizeof(lv_image_header_t));
+            res = lv_draw_buf_init(decoded, header.w, header.h, header.cf, header.stride, \
+                                            (void *)(base + sizeof(lv_image_header_t)), \
+                                            header.w * header.h * lv_color_format_get_bpp(header.cf) / 8);
+        }
+        else if(psram_src[0] == 'P'){
+            uint32_t img_addr = psram_src_get_index(psram_src);
+            if(img_addr == 0xffffffff) return LV_RESULT_INVALID;
+            if(psram_resource_provider == NULL || psram_resource_provider->get_static_data == NULL) {
+                return LV_RESULT_INVALID;
+            }
+
+            const uint8_t * base = psram_resource_provider->get_static_data();
+            if(base == NULL) return LV_RESULT_INVALID;
+            lv_memcpy(&header, base + img_addr, sizeof(lv_image_header_t));
+
+            res = lv_draw_buf_init(decoded, header.w, header.h, header.cf, header.stride, \
+                                                    (void *)(base + img_addr + sizeof(lv_image_header_t)), \
+                                                    header.w * header.h * lv_color_format_get_bpp(header.cf) / 8);
+        }
+
 
         decoded->header.flags = header.flags;
 
