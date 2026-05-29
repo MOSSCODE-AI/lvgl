@@ -284,7 +284,9 @@ static void LV_ATTRIBUTE_FAST_MEM draw_letter_cb(lv_draw_task_t * t, lv_draw_gly
                 break;
 
             case LV_FONT_GLYPH_FORMAT_VECTOR: {
-                    lv_draw_ambiq_vector_font(t, glyph_draw_dsc);
+                    #if LV_USE_DRAW_AMBIQ && LV_USE_AMBIQ_VG
+                        lv_draw_ambiq_vector_font(t, glyph_draw_dsc);
+                    #endif
                 }
                 break;
 

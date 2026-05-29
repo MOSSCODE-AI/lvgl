@@ -508,7 +508,7 @@ static void LV_ATTRIBUTE_FAST_MEM shadow_draw_corner_buf(const lv_area_t * coord
     else sw = sw_ori >> 1;
 #endif /*SHADOW_ENHANCE*/
 
-    lv_ambiq_create_corner_mask(size, sw, sh_buf);
+    lv_ambiq_create_corner_mask(size, sw, (uint32_t*)sh_buf);
 
     if(sw == 1) {
         /*This call has no immediate effect here; it's used to update the global blend mode after calling `lv_ambiq_shadow_blur_corner`.
