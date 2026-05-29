@@ -36,7 +36,7 @@ void lv_bin_decoder_init(void);
  * Get PSRAM data pointer for binary image decoder (weak, can be overridden)
  * @return pointer to PSRAM data, or NULL if not available
  */
-const uint8_t * lv_bin_decoder_psram_data(void) __attribute__((weak));
+// const uint8_t * lv_bin_decoder_psram_data(void) __attribute__((weak));
 
 /**
  * Get info about a lvgl binary image

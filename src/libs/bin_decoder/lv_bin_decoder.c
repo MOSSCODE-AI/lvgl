@@ -34,6 +34,12 @@
 /**********************
  *      TYPEDEFS
  **********************/
+const uint8_t *lv_bin_decoder_psram_data(void)
+{
+    return NULL;
+}
+
+
 
 /**
  * Data format for compressed image data.
@@ -578,10 +584,6 @@ lv_result_t lv_bin_decoder_get_area(lv_image_decoder_t * decoder, lv_image_decod
     return LV_RESULT_INVALID;
 }
 
-const uint8_t * __attribute__((weak)) lv_bin_decoder_psram_data(void)
-{
-    return NULL;
-}
 
 
 /**********************
