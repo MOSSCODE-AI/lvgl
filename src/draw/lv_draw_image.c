@@ -202,7 +202,9 @@ lv_image_src_t lv_image_src_get_type(const void * src)
     const uint8_t * u8_p = src;
 
     /*The first byte shows the type of the image source*/
-    if(u8_p[0] >= 0x20 && u8_p[0] <= 0x7F) {
+    if(u8_p[0] == 'P')
+        return LV_IMAGE_SRC_PSRAM;
+    else if(u8_p[0] >= 0x20 && u8_p[0] <= 0x7F) {
         return LV_IMAGE_SRC_FILE; /*If it's an ASCII character then it's file name*/
     }
     else if(u8_p[0] >= 0x80) {

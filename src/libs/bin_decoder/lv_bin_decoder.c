@@ -76,6 +76,7 @@ static lv_result_t decode_compressed(lv_image_decoder_t * decoder, lv_image_deco
 static lv_fs_res_t fs_read_file_at(lv_fs_file_t * f, uint32_t pos, void * buff, uint32_t btr, uint32_t * br);
 
 static lv_result_t decompress_image(lv_image_decoder_dsc_t * dsc, const lv_image_compressed_t * compressed);
+static uint32_t psram_src_get_index(const void * src);
 
 /**********************
  *  STATIC VARIABLES
@@ -121,6 +122,14 @@ lv_result_t lv_bin_decoder_info(lv_image_decoder_t * decoder, lv_image_decoder_d
     if(src_type == LV_IMAGE_SRC_VARIABLE) {
         lv_image_dsc_t * image = (lv_image_dsc_t *)src;
         lv_memcpy(header, &image->header, sizeof(lv_image_header_t));
+    }
+    else if(src_type == LV_IMAGE_SRC_PSRAM) {
+        uint32_t img_addr = psram_src_get_index(src);
+        if(img_addr == 0xffffffff) return LV_RESULT_INVALID;
+        const uint8_t * base = lv_bin_decoder_psram_data();
+        if(base == NULL) return LV_RESULT_INVALID;
+        lv_memcpy(header, base + img_addr, sizeof(lv_image_header_t));
+
     }
     else if(src_type == LV_IMAGE_SRC_FILE) {
         /*Support only "*.bin" files*/
@@ -252,7 +261,39 @@ lv_result_t lv_bin_decoder_open(lv_image_decoder_t * decoder, lv_image_decoder_d
         }
 #endif
     }
+    else if(dsc->src_type == LV_IMAGE_SRC_PSRAM) {
+        //Imitate LV_IMAGE_SRC_VARIABLE for rendering decoded content
 
+        decoder_data_t * decoder_data = get_decoder_data(dsc);
+        lv_draw_buf_t * decoded;
+
+        decoded = &decoder_data->c_array;
+
+        lv_image_header_t header = {0};
+        const uint8_t * psram_src = (const uint8_t *)dsc->src;
+        uint32_t img_addr = psram_src_get_index(psram_src);
+        if(img_addr == 0xffffffff) return LV_RESULT_INVALID;
+        const uint8_t * base = lv_bin_decoder_psram_data();
+        if(base == NULL) return LV_RESULT_INVALID;
+        lv_memcpy(&header, base + img_addr, sizeof(lv_image_header_t));
+
+        res = lv_draw_buf_init(decoded, header.w, header.h, header.cf, header.stride, \
+                                                (void *)(base + img_addr + sizeof(lv_image_header_t)), \
+                                                header.w * header.h * lv_color_format_get_bpp(header.cf) / 8);
+
+        decoded->header.flags = header.flags;
+
+        if(res == LV_RESULT_OK) {
+            dsc->decoded = decoded;
+
+            if(decoded->header.stride == 0) {
+                /*Use the auto calculated value from decoder_info callback*/
+                decoded->header.stride = dsc->header.stride;
+            }
+
+            use_directly = true; /*A variable image that can be used directly.*/
+        }
+    } 
     else if(dsc->src_type == LV_IMAGE_SRC_VARIABLE) {
         /*The variables should have valid data*/
         lv_image_dsc_t * image = (lv_image_dsc_t *)dsc->src;
@@ -537,9 +578,27 @@ lv_result_t lv_bin_decoder_get_area(lv_image_decoder_t * decoder, lv_image_decod
     return LV_RESULT_INVALID;
 }
 
+const uint8_t * __attribute__((weak)) lv_bin_decoder_psram_data(void)
+{
+    return NULL;
+}
+
+
 /**********************
  *   STATIC FUNCTIONS
  **********************/
+
+static uint32_t psram_src_get_index(const void * src)
+{
+    const uint8_t * p = (const uint8_t *)src + 1; /*Skip leading 'P'*/
+    uint32_t index = 0;
+    while(*p >= (uint8_t)'0' && *p <= (uint8_t)'9') {
+        index = index * 10u + (uint32_t)(*p - (uint8_t)'0');
+        p++;
+    }
+    return index;
+}
+
 
 static decoder_data_t * get_decoder_data(lv_image_decoder_dsc_t * dsc)
 {

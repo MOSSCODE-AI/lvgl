@@ -34,6 +34,7 @@ typedef enum {
     LV_IMAGE_SRC_VARIABLE, /** Binary/C variable*/
     LV_IMAGE_SRC_FILE, /** File in filesystem*/
     LV_IMAGE_SRC_SYMBOL, /** Symbol (@ref lv_symbol_def.h)*/
+    LV_IMAGE_SRC_PSRAM,
     LV_IMAGE_SRC_UNKNOWN, /** Unknown source*/
 } lv_image_src_t;
 
