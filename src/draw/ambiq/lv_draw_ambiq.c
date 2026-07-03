@@ -52,6 +52,7 @@
 #include "../../display/lv_display_private.h"
 #include "../../stdlib/lv_string.h"
 #include "../../core/lv_global.h"
+#include "platform/bsp/systemevent.h"
 
 /*********************
  *      DEFINES
@@ -352,6 +353,15 @@ static int32_t evaluate(lv_draw_unit_t * draw_unit, lv_draw_task_t * task)
             task->preferred_draw_unit_id = DRAW_UNIT_ID_AMBIQ;
             break;
 
+        case LV_DRAW_TASK_TYPE_GRADIENT_ARC:
+#if LV_USE_AMBIQ_VG
+            task->preference_score = 10;
+            task->preferred_draw_unit_id = DRAW_UNIT_ID_AMBIQ;
+#else
+            return 0;
+#endif
+            break;
+
 #if LV_USE_VECTOR_GRAPHIC
         case LV_DRAW_TASK_TYPE_VECTOR:
 #if LV_USE_AMBIQ_VG
@@ -511,11 +521,11 @@ static void execute_drawing(lv_draw_task_t * t)
             lv_draw_ambiq_image(t, t->draw_dsc, &t->area);
             break;
         case LV_DRAW_TASK_TYPE_LABEL:
-            lv_draw_ambiq_vg_start(draw_buf->header.w, draw_buf->header.h);
+            // lv_draw_ambiq_vg_start(draw_buf->header.w, draw_buf->header.h);
             lv_draw_ambiq_label(t, t->draw_dsc, &t->area);
             break;
         case LV_DRAW_TASK_TYPE_LETTER:
-            lv_draw_ambiq_vg_start(draw_buf->header.w, draw_buf->header.h);
+            // lv_draw_ambiq_vg_start(draw_buf->header.w, draw_buf->header.h);
             lv_draw_ambiq_letter(t, t->draw_dsc, &t->area);
             break;
         case LV_DRAW_TASK_TYPE_BOX_SHADOW:
@@ -526,6 +536,17 @@ static void execute_drawing(lv_draw_task_t * t)
             break;
         case LV_DRAW_TASK_TYPE_LAYER:
             lv_draw_ambiq_layer(t, t->draw_dsc, &t->area);
+            break;
+
+        case LV_DRAW_TASK_TYPE_GRADIENT_ARC:
+#if LV_USE_AMBIQ_VG
+            if(lv_draw_ambiq_vg_start(draw_buf->header.w, draw_buf->header.h) == LV_RESULT_OK) {
+                lv_draw_ambiq_gradient_arc(t, t->draw_dsc);
+            }
+            else {
+                SYSEVENT_FAULT_ERROR("NemaVG gradient arc vg_start failed");
+            }
+#endif
             break;
 
 #if LV_USE_VECTOR_GRAPHIC

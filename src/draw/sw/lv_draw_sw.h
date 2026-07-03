@@ -27,6 +27,7 @@ extern "C" {
 #include "../lv_draw_line.h"
 #include "../lv_draw_mask.h"
 #include "../lv_draw_arc.h"
+#include "../lv_draw_gradient_arc.h"
 #include "../lv_draw_blur.h"
 #include "lv_draw_sw_utils.h"
 #include "blend/lv_draw_sw_blend.h"
@@ -100,6 +101,15 @@ void lv_draw_sw_label(lv_draw_task_t * t, const lv_draw_label_dsc_t * dsc, const
  * @param coords        the coordinates of the arc
  */
 void lv_draw_sw_arc(lv_draw_task_t * t, const lv_draw_arc_dsc_t * dsc, const lv_area_t * coords);
+
+/**
+ * Draw an Ambiq gradient arc task with SW render.
+ * @param t             pointer to a draw task
+ * @param dsc           the draw descriptor
+ * @param coords        the coordinates of the arc
+ */
+void lv_draw_sw_gradient_arc(lv_draw_task_t * t, const lv_draw_gradient_arc_dsc_t * dsc,
+                             const lv_area_t * coords);
 
 /**
  * Draw a line with SW render.

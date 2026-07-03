@@ -14,6 +14,7 @@
 #include "../misc/lv_assert.h"
 #include "../misc/lv_event_private.h"
 #include "lv_draw_private.h"
+#include "lv_draw_gradient_arc.h"
 #include "lv_draw_mask.h"
 #include "lv_draw_vector_private.h"
 #include "lv_draw_3d.h"
@@ -658,6 +659,8 @@ static inline size_t get_draw_dsc_size(lv_draw_task_type_t type)
         case LV_DRAW_TASK_TYPE_3D:
             return sizeof(lv_draw_3d_dsc_t);
 #endif
+        case LV_DRAW_TASK_TYPE_GRADIENT_ARC:
+            return sizeof(lv_draw_gradient_arc_dsc_t);
             /* Note that default is not added here because when adding new draw task type,
              * if forget to add case, the compiler will automatically report a warning.
              */

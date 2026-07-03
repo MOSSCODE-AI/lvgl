@@ -64,6 +64,7 @@ extern "C" {
 #include "../lv_draw_image.h"
 #include "../lv_draw_line.h"
 #include "../lv_draw_arc.h"
+#include "../lv_draw_gradient_arc.h"
 #include "../lv_draw_private.h"
 
 /**
@@ -132,6 +133,15 @@ void lv_draw_ambiq_letter(lv_draw_task_t * t, const lv_draw_letter_dsc_t * dsc, 
  * @param coords        the coordinates of the arc
  */
 void lv_draw_ambiq_arc(lv_draw_task_t * t, const lv_draw_arc_dsc_t * dsc, const lv_area_t * coords);
+
+#if LV_USE_AMBIQ_VG
+/**
+ * Draw a NemaVG ring with either conical gradient paint or solid color paint.
+ * @param draw_task     pointer to a draw task
+ * @param dsc           the draw descriptor
+ */
+void lv_draw_ambiq_gradient_arc(lv_draw_task_t * t, const lv_draw_gradient_arc_dsc_t * dsc);
+#endif
 
 /**
  * Draw a line with AMBIQ GPU render.
