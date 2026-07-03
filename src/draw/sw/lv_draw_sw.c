@@ -407,6 +407,9 @@ static void execute_drawing(lv_draw_task_t * t)
         case LV_DRAW_TASK_TYPE_ARC:
             lv_draw_sw_arc(t, t->draw_dsc, &t->area);
             break;
+        case LV_DRAW_TASK_TYPE_GRADIENT_ARC:
+            lv_draw_sw_gradient_arc(t, t->draw_dsc, &t->area);
+            break;
         case LV_DRAW_TASK_TYPE_LINE:
             lv_draw_line_iterate(t, t->draw_dsc, lv_draw_sw_line);
             break;
