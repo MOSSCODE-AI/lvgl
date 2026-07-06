@@ -28,6 +28,18 @@ static color_var_t lv_draw_ambiq_gradient_color(lv_color32_t color);
 static color_var_t lv_draw_ambiq_gradient_mix_color(lv_color32_t start_color, lv_color32_t end_color, float ratio);
 static float lv_draw_ambiq_normalize_angle(float angle);
 static float lv_draw_ambiq_gradient_sweep(float start_angle, float end_angle);
+static void lv_draw_ambiq_normalize_sweep_angles(float * start_angle, float * end_angle);
+static float lv_draw_ambiq_next_quadrant_angle(float angle);
+static void lv_draw_ambiq_draw_ring_segment(float cx,
+                                            float cy,
+                                            float radius,
+                                            float start_angle,
+                                            float end_angle,
+                                            bool start_rounded,
+                                            bool end_rounded,
+                                            NEMA_VG_PAINT_HANDLE paint);
+static void lv_draw_ambiq_draw_ring_segments(float cx, float cy, const lv_draw_gradient_arc_dsc_t * dsc,
+                                             NEMA_VG_PAINT_HANDLE paint);
 static void lv_draw_ambiq_set_conical_gradient(NEMA_VG_GRAD_HANDLE grad,
                                                NEMA_VG_PAINT_HANDLE paint,
                                                const lv_draw_gradient_arc_dsc_t * dsc,
@@ -68,6 +80,7 @@ void lv_draw_ambiq_gradient_arc(lv_draw_task_t * t, const lv_draw_gradient_arc_d
         blending_mode = NEMA_BL_SRC_OVER;
     }
 
+    nema_vg_paint_clear(unit->vg_paint);
     nema_vg_paint_set_opacity(unit->vg_paint, 1.0f);
     if(dsc->use_gradient) {
         lv_draw_ambiq_set_conical_gradient(unit->vg_grad, unit->vg_paint, dsc, cx, cy);
@@ -81,15 +94,9 @@ void lv_draw_ambiq_gradient_arc(lv_draw_task_t * t, const lv_draw_gradient_arc_d
     }
 
     nema_vg_stroke_set_width(dsc->width);
-    if(dsc->rounded) {
-        nema_vg_stroke_set_cap_style(NEMA_VG_CAP_ROUND, NEMA_VG_CAP_ROUND);
-    }
-    else {
-        nema_vg_stroke_set_cap_style(NEMA_VG_CAP_BUTT, NEMA_VG_CAP_BUTT);
-    }
     nema_vg_set_quality(NEMA_VG_QUALITY_BETTER);
     nema_vg_set_blend(blending_mode);
-    nema_vg_draw_ring(cx, cy, dsc->radius, dsc->start_angle, dsc->end_angle, unit->vg_paint);
+    lv_draw_ambiq_draw_ring_segments(cx, cy, dsc, unit->vg_paint);
 }
 #endif
 
@@ -140,6 +147,76 @@ static float lv_draw_ambiq_gradient_sweep(float start_angle, float end_angle)
         sweep += 360.0f;
     }
     return sweep;
+}
+
+static void lv_draw_ambiq_normalize_sweep_angles(float * start_angle, float * end_angle)
+{
+    float start = *start_angle;
+    float end = *end_angle;
+
+    while(start < 0.0f) {
+        start += 360.0f;
+        end += 360.0f;
+    }
+    while(start >= 360.0f) {
+        start -= 360.0f;
+        end -= 360.0f;
+    }
+
+    *start_angle = start;
+    *end_angle = end;
+}
+
+static float lv_draw_ambiq_next_quadrant_angle(float angle)
+{
+    int32_t quadrant = (int32_t)(angle / 90.0f) + 1;
+    return (float)quadrant * 90.0f;
+}
+
+static void lv_draw_ambiq_draw_ring_segment(float cx,
+                                            float cy,
+                                            float radius,
+                                            float start_angle,
+                                            float end_angle,
+                                            bool start_rounded,
+                                            bool end_rounded,
+                                            NEMA_VG_PAINT_HANDLE paint)
+{
+    nema_vg_stroke_set_cap_style(start_rounded ? NEMA_VG_CAP_ROUND : NEMA_VG_CAP_BUTT,
+                                 end_rounded ? NEMA_VG_CAP_ROUND : NEMA_VG_CAP_BUTT);
+    nema_vg_draw_ring(cx, cy, radius, start_angle, end_angle, paint);
+}
+
+static void lv_draw_ambiq_draw_ring_segments(float cx, float cy, const lv_draw_gradient_arc_dsc_t * dsc,
+                                             NEMA_VG_PAINT_HANDLE paint)
+{
+    const float epsilon = 0.001f;
+    float start_angle = dsc->start_angle;
+    float end_angle = start_angle + lv_draw_ambiq_gradient_sweep(dsc->start_angle, dsc->end_angle);
+    lv_draw_ambiq_normalize_sweep_angles(&start_angle, &end_angle);
+
+    float segment_start = start_angle;
+    bool first_segment = true;
+
+    while(segment_start < end_angle - epsilon) {
+        float segment_end = end_angle;
+        const float quadrant_angle = lv_draw_ambiq_next_quadrant_angle(segment_start);
+        if(quadrant_angle > segment_start + epsilon && quadrant_angle < end_angle - epsilon) {
+            segment_end = quadrant_angle;
+        }
+
+        const bool last_segment = segment_end >= end_angle - epsilon;
+        lv_draw_ambiq_draw_ring_segment(cx,
+                                        cy,
+                                        dsc->radius,
+                                        segment_start,
+                                        segment_end,
+                                        dsc->rounded && first_segment,
+                                        dsc->rounded && last_segment,
+                                        paint);
+        segment_start = segment_end;
+        first_segment = false;
+    }
 }
 
 static void lv_draw_ambiq_set_conical_gradient(NEMA_VG_GRAD_HANDLE grad,
