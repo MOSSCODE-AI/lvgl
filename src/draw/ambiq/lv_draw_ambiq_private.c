@@ -546,26 +546,15 @@ lv_result_t lv_draw_ambiq_vg_start(uint32_t width, uint32_t height)
     // clear the blend mode record
     lv_ambiq_blend_mode_clear(unit);
 
-    // adjust the stencil buffer
-    uint32_t des_buf_aligned_width = (width + 3) & ~3;
-    uint32_t des_buf_aligned_height = (height + 3) & ~3;
-
-    lv_result_t result = lv_draw_ambiq_stencil_buffer_adjust(unit, des_buf_aligned_width, des_buf_aligned_height);
-    if(result != LV_RESULT_OK) {
-        LV_LOG_ERROR("Failed to adjust stencil buffer!");
-        return result;
-    }
-
-    // bind the destination buffer
-    nema_buffer_t stencil_buffer_in_nema_format = {
-        .base_virt = unit->stencil_buffer->data,
-        .base_phys = (uintptr_t)unit->stencil_buffer->data,
-        .fd = 0,
-        .size = unit->stencil_buffer->data_size,
-    };
-    nema_vg_bind_stencil_prealloc(des_buf_aligned_width,
-                                  des_buf_aligned_height,
-                                  stencil_buffer_in_nema_format);
+    /* The VG stencil is a permanent full-display buffer allocated from the
+     * GPU's own heap and bound once at nema_vg_init_stencil_prealloc() time
+     * (see gpu_init), so no per-draw adjustment is needed. Rebinding here
+     * with lv_draw_buf-backed memory double-freed the previous stencil:
+     * nema_vg_bind_stencil_prealloc() destroys the buffer it tracked through
+     * get_heap(bo.fd) after lv_draw_ambiq_stencil_buffer_adjust() had
+     * already lv_draw_buf_destroy()ed the same pointer. */
+    LV_UNUSED(width);
+    LV_UNUSED(height);
 
 #endif
 
