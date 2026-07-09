@@ -218,6 +218,9 @@ void lv_draw_buf_clear(lv_draw_buf_t * draw_buf, const lv_area_t * a);
  */
 lv_draw_buf_t * lv_draw_buf_create(uint32_t w, uint32_t h, lv_color_format_t cf, uint32_t stride);
 
+lv_draw_buf_t * lv_draw_buf_create_psram(uint32_t w, uint32_t h, lv_color_format_t cf, uint32_t stride);
+
+
 /**
  * Note: Eventually, lv_draw_buf_malloc/free will be kept as private.
  *       For now, we use `create` to distinguish with malloc.

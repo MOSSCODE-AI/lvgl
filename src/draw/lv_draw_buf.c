@@ -258,6 +258,12 @@ lv_draw_buf_t * lv_draw_buf_create(uint32_t w, uint32_t h, lv_color_format_t cf,
     return lv_draw_buf_create_ex(&default_handlers, w, h, cf, stride);
 }
 
+lv_draw_buf_t * lv_draw_buf_create_psram(uint32_t w, uint32_t h, lv_color_format_t cf, uint32_t stride)
+{
+    return lv_draw_buf_create_ex(&image_cache_draw_buf_handlers, w, h, cf, stride);
+}
+
+
 lv_draw_buf_t * lv_draw_buf_create_ex(const lv_draw_buf_handlers_t * handlers, uint32_t w, uint32_t h,
                                       lv_color_format_t cf, uint32_t stride)
 {
