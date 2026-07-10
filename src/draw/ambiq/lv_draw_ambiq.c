@@ -105,7 +105,7 @@ void lv_draw_ambiq_init(void)
 
         hal_ret = nemagfx_power_control(AM_HAL_SYSCTRL_WAKE, false);
         if(hal_ret != AM_HAL_STATUS_SUCCESS) {
-            LV_LOG_ERROR("Power control failed: %d\r\n", hal_ret);
+            LV_LOG_ERROR("Power control failed: %ld\r\n", hal_ret);
         }
 
         /* Initialize the NemaGFX (raster graphics) SDK. */
@@ -127,12 +127,12 @@ void lv_draw_ambiq_init(void)
 #if LV_AMBIQ_GPU_POWER_SAVE
     hal_ret = nemagfx_power_control(AM_HAL_SYSCTRL_DEEPSLEEP, true);
     if(hal_ret != AM_HAL_STATUS_SUCCESS) {
-        LV_LOG_ERROR("Power control failed: %d\r\n", hal_ret);
+        LV_LOG_ERROR("Power control failed: %ld\r\n", hal_ret);
     }
 #else
     hal_ret = nemagfx_power_control(AM_HAL_SYSCTRL_WAKE, true);
     if(hal_ret != AM_HAL_STATUS_SUCCESS) {
-        LV_LOG_ERROR("Power control failed: %d\r\n", hal_ret);
+        LV_LOG_ERROR("Power control failed: %ld\r\n", hal_ret);
     }
 #endif
 
