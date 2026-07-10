@@ -432,7 +432,7 @@ lv_result_t lv_draw_ambiq_common_start(const lv_draw_buf_t * buf_dsc, const lv_a
     uint32_t hal_ret = nemagfx_power_control(AM_HAL_SYSCTRL_WAKE, true);
     if(hal_ret != AM_HAL_STATUS_SUCCESS) {
         lv_draw_ambiq_nema_context_unlock(unit);
-        LV_LOG_ERROR("Power control failed: %d\r\n", hal_ret);
+        LV_LOG_ERROR("Power control failed: %ld\r\n", hal_ret);
         return LV_RESULT_INVALID;
     }
 #endif
@@ -583,7 +583,7 @@ lv_result_t lv_draw_ambiq_common_end(bool sync)
 #if LV_AMBIQ_GPU_POWER_SAVE
         uint32_t hal_ret = nemagfx_power_control(AM_HAL_SYSCTRL_DEEPSLEEP, true);
         if(hal_ret != AM_HAL_STATUS_SUCCESS) {
-            LV_LOG_ERROR("Power control failed: %d\r\n", hal_ret);
+            LV_LOG_ERROR("Power control failed: %ld\r\n", hal_ret);
             return LV_RESULT_INVALID;
         }
 #endif
@@ -600,11 +600,11 @@ lv_result_t lv_draw_ambiq_common_end(bool sync)
     // Check error
     uint32_t err = nema_get_error();
     if(err != NEMA_ERR_NO_ERROR) {
-        LV_LOG_ERROR("NemaGFX error 0x%x, %s\r\n", err, nema_raster_error_interpret(err));
+        LV_LOG_ERROR("NemaGFX error 0x%lx, %s\r\n", err, nema_raster_error_interpret(err));
     }
     err = nema_vg_get_error();
     if(err != NEMA_VG_ERR_NO_ERROR) {
-        LV_LOG_ERROR("NemaVG error: 0x%x, %s\r\n", err, nema_vg_error_interpret(err));
+        LV_LOG_ERROR("NemaVG error: 0x%lx, %s\r\n", err, nema_vg_error_interpret(err));
     }
 
     return LV_RESULT_OK;
