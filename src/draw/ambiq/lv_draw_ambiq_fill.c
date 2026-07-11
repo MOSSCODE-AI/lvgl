@@ -106,6 +106,12 @@ void lv_draw_ambiq_fill(lv_draw_task_t * t, const lv_draw_fill_dsc_t * dsc, cons
         if(rout == 0) {
             nema_raster_rect(bg_coords.x1, bg_coords.y1, coords_w, coords_h);
         }
+        else if(rout == (short_side >> 1) && coords_w == coords_h) {
+            /* Full circle: use AA rasterizer (rounded_rect has no AA API). */
+            float cx = bg_coords.x1 + coords_w * 0.5f;
+            float cy = bg_coords.y1 + coords_h * 0.5f;
+            nema_raster_circle_aa(cx, cy, (float)rout);
+        }
         else {
             nema_raster_rounded_rect(bg_coords.x1, bg_coords.y1, coords_w, coords_h, rout);
         }
