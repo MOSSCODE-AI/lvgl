@@ -503,7 +503,11 @@ lv_result_t lv_draw_ambiq_stencil_buffer_adjust(lv_draw_ambiq_unit_t * unit,
     }
 
     if(stencil_buffer == NULL) {
-        stencil_buffer = lv_draw_buf_create(width, height, LV_COLOR_FORMAT_A8, 0);
+        #if LV_USE_AMBIQ_VG_USE_PSRAM
+            stencil_buffer = lv_draw_buf_create_psram(width, height, LV_COLOR_FORMAT_A8, 0);
+        #else
+            stencil_buffer = lv_draw_buf_create(width, height, LV_COLOR_FORMAT_A8, 0);
+        #endif
         unit->stencil_buffer = stencil_buffer;
     }
     else {
@@ -518,7 +522,11 @@ lv_result_t lv_draw_ambiq_stencil_buffer_adjust(lv_draw_ambiq_unit_t * unit,
 #else
             lv_draw_buf_destroy(unit->stencil_buffer);
 #endif
-            unit->stencil_buffer = lv_draw_buf_create(width, height, LV_COLOR_FORMAT_A8, 0);
+        #if LV_USE_AMBIQ_VG_USE_PSRAM
+            stencil_buffer = lv_draw_buf_create_psram(width, height, LV_COLOR_FORMAT_A8, 0);
+        #else
+            stencil_buffer = lv_draw_buf_create(width, height, LV_COLOR_FORMAT_A8, 0);
+        #endif
 
         }
         else {
@@ -609,6 +617,19 @@ lv_result_t lv_draw_ambiq_common_end(bool sync)
 
     return LV_RESULT_OK;
 
+}
+
+void lv_draw_ambiq_vg_stencil_buffer_clean(void)
+{
+#if LV_USE_AMBIQ_VG
+    lv_draw_ambiq_unit_t * unit = lv_draw_ambiq_get_default_unit();
+    if(unit->stencil_buffer != NULL)
+    {
+        lv_draw_buf_destroy(unit->stencil_buffer);
+        unit->stencil_buffer = NULL;
+    }
+#endif
+ 
 }
 
 uint32_t lv_draw_ambiq_bind_image_texture(const lv_draw_buf_t * decoded, uint32_t color_rgba, uint32_t tex_wrap_mode)

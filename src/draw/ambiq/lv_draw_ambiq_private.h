@@ -203,6 +203,7 @@ lv_result_t lv_draw_ambiq_stencil_buffer_adjust(lv_draw_ambiq_unit_t * unit, uin
 lv_result_t lv_draw_ambiq_common_start(const lv_draw_buf_t * buf_dsc, const lv_area_t * clip_area_raw,
                                        bool extend_color_format_support);
 lv_result_t lv_draw_ambiq_common_end(bool sync);
+void lv_draw_ambiq_vg_stencil_buffer_clean(void);//modify lin
 lv_result_t lv_draw_ambiq_vg_start(uint32_t width, uint32_t height);
 
 void lv_draw_ambiq_vector_font_init(lv_draw_unit_t * draw_unit);
