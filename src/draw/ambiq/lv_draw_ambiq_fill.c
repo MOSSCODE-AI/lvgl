@@ -101,19 +101,23 @@ void lv_draw_ambiq_fill(lv_draw_task_t * t, const lv_draw_fill_dsc_t * dsc, cons
     }
 
     if((grad_dir == LV_GRAD_DIR_NONE)) {
-        lv_ambiq_set_blend_fill(draw_ambiq_unit, blending_mode);
-        nema_set_raster_color(bg_color);
         if(rout == 0) {
+            lv_ambiq_set_blend_fill(draw_ambiq_unit, blending_mode);
+            nema_set_raster_color(bg_color);
             nema_raster_rect(bg_coords.x1, bg_coords.y1, coords_w, coords_h);
         }
-        else if(rout == (short_side >> 1) && coords_w == coords_h) {
-            /* Full circle: use AA rasterizer (rounded_rect has no AA API). */
-            float cx = bg_coords.x1 + coords_w * 0.5f;
-            float cy = bg_coords.y1 + coords_h * 0.5f;
-            nema_raster_circle_aa(cx, cy, (float)rout);
-        }
         else {
-            nema_raster_rounded_rect(bg_coords.x1, bg_coords.y1, coords_w, coords_h, rout);
+            /*
+             * nema_enable_aa() does not anti-alias nema_raster_rounded_rect().
+             * Use the dedicated AA fill API (same as LVGL's lv_draw_nema_gfx_fill).
+             * SRC_OVER so AA fringe blends with the already-drawn background.
+             */
+            uint32_t aa_color = bg_color;
+            lv_ambiq_set_blend_fill(draw_ambiq_unit, NEMA_BL_SRC_OVER);
+            aa_color = nema_premultiply_rgba(aa_color);
+            nema_fill_rounded_rect_aa((float)bg_coords.x1, (float)bg_coords.y1,
+                                      (float)coords_w, (float)coords_h,
+                                      (float)rout, aa_color);
         }
         return;
     }
@@ -168,7 +172,10 @@ void lv_draw_ambiq_fill(lv_draw_task_t * t, const lv_draw_fill_dsc_t * dsc, cons
         nema_raster_rect(bg_coords.x1, bg_coords.y1, coords_w, coords_h);
     }
     else {
+        /* Gradient + rounded: still no dedicated AA gradient API; enable AA flags. */
+        uint32_t prev_aa = nema_enable_aa(true, true, true, true);
         nema_raster_rounded_rect(bg_coords.x1, bg_coords.y1, coords_w, coords_h, rout);
+        (void)nema_enable_aa_flags(prev_aa);
     }
 
     return;
