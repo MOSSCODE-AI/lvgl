@@ -28,6 +28,7 @@ extern "C" {
 #include "../lv_draw_mask.h"
 #include "../lv_draw_arc.h"
 #include "../lv_draw_gradient_arc.h"
+#include "../lv_draw_rounded_rectangle_path.h"
 #include "../lv_draw_blur.h"
 #include "lv_draw_sw_utils.h"
 #include "blend/lv_draw_sw_blend.h"
@@ -110,6 +111,15 @@ void lv_draw_sw_arc(lv_draw_task_t * t, const lv_draw_arc_dsc_t * dsc, const lv_
  */
 void lv_draw_sw_gradient_arc(lv_draw_task_t * t, const lv_draw_gradient_arc_dsc_t * dsc,
                              const lv_area_t * coords);
+
+/**
+ * Draw a rounded rectangle path task with SW render.
+ * @param t             pointer to a draw task
+ * @param dsc           the draw descriptor
+ * @param coords        the coordinates of the path
+ */
+void lv_draw_sw_rounded_rectangle_path(lv_draw_task_t * t, const lv_draw_rounded_rectangle_path_dsc_t * dsc,
+                                       const lv_area_t * coords);
 
 /**
  * Draw a line with SW render.

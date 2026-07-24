@@ -65,6 +65,7 @@ extern "C" {
 #include "../lv_draw_line.h"
 #include "../lv_draw_arc.h"
 #include "../lv_draw_gradient_arc.h"
+#include "../lv_draw_rounded_rectangle_path.h"
 #include "../lv_draw_private.h"
 
 /**
@@ -141,6 +142,13 @@ void lv_draw_ambiq_arc(lv_draw_task_t * t, const lv_draw_arc_dsc_t * dsc, const 
  * @param dsc           the draw descriptor
  */
 void lv_draw_ambiq_gradient_arc(lv_draw_task_t * t, const lv_draw_gradient_arc_dsc_t * dsc);
+
+/**
+ * Draw a rounded rectangle path with AMBIQ NemaVG.
+ * @param draw_task     pointer to a draw task
+ * @param dsc           the draw descriptor
+ */
+void lv_draw_ambiq_rounded_rectangle_path(lv_draw_task_t * t, const lv_draw_rounded_rectangle_path_dsc_t * dsc);
 #endif
 
 /**

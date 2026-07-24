@@ -15,6 +15,7 @@
 #include "../misc/lv_event_private.h"
 #include "lv_draw_private.h"
 #include "lv_draw_gradient_arc.h"
+#include "lv_draw_rounded_rectangle_path.h"
 #include "lv_draw_mask.h"
 #include "lv_draw_vector_private.h"
 #include "lv_draw_3d.h"
@@ -661,6 +662,8 @@ static inline size_t get_draw_dsc_size(lv_draw_task_type_t type)
 #endif
         case LV_DRAW_TASK_TYPE_GRADIENT_ARC:
             return sizeof(lv_draw_gradient_arc_dsc_t);
+        case LV_DRAW_TASK_TYPE_ROUNDED_RECTANGLE_PATH:
+            return sizeof(lv_draw_rounded_rectangle_path_dsc_t);
             /* Note that default is not added here because when adding new draw task type,
              * if forget to add case, the compiler will automatically report a warning.
              */
@@ -682,6 +685,15 @@ static void cleanup_task(lv_draw_task_t * t, lv_display_t * disp)
         if(draw_line_dsc->points) {
             lv_free(draw_line_dsc->points);
             draw_line_dsc->points = NULL;
+        }
+    }
+    else if(t->type == LV_DRAW_TASK_TYPE_ROUNDED_RECTANGLE_PATH) {
+        lv_draw_rounded_rectangle_path_dsc_t * draw_path_dsc = t->draw_dsc;
+        lv_draw_rounded_rectangle_path_data_t * path = (lv_draw_rounded_rectangle_path_data_t *)draw_path_dsc->path;
+        if(path) {
+            lv_draw_rounded_rectangle_path_data_release(path);
+            lv_free(path);
+            draw_path_dsc->path = NULL;
         }
     }
     /*If it was layer drawing free the layer too*/

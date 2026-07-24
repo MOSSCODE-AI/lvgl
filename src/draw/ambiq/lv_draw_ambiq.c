@@ -362,6 +362,15 @@ static int32_t evaluate(lv_draw_unit_t * draw_unit, lv_draw_task_t * task)
 #endif
             break;
 
+        case LV_DRAW_TASK_TYPE_ROUNDED_RECTANGLE_PATH:
+#if LV_USE_AMBIQ_VG
+            task->preference_score = 10;
+            task->preferred_draw_unit_id = DRAW_UNIT_ID_AMBIQ;
+#else
+            return 0;
+#endif
+            break;
+
 #if LV_USE_VECTOR_GRAPHIC
         case LV_DRAW_TASK_TYPE_VECTOR:
 #if LV_USE_AMBIQ_VG
@@ -545,6 +554,17 @@ static void execute_drawing(lv_draw_task_t * t)
             }
             else {
                 SYSEVENT_FAULT_ERROR("NemaVG gradient arc vg_start failed");
+            }
+#endif
+            break;
+
+        case LV_DRAW_TASK_TYPE_ROUNDED_RECTANGLE_PATH:
+#if LV_USE_AMBIQ_VG
+            if(lv_draw_ambiq_vg_start(draw_buf->header.w, draw_buf->header.h) == LV_RESULT_OK) {
+                lv_draw_ambiq_rounded_rectangle_path(t, t->draw_dsc);
+            }
+            else {
+                SYSEVENT_FAULT_ERROR("NemaVG rounded rectangle path vg_start failed");
             }
 #endif
             break;
