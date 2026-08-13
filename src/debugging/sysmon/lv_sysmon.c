@@ -97,6 +97,27 @@ lv_obj_t * lv_sysmon_create(lv_display_t * disp)
     return label;
 }
 
+void lv_sysmon_bring_to_foreground(lv_display_t * disp)
+{
+    if(disp == NULL) disp = lv_display_get_default();
+    if(disp == NULL) {
+        LV_LOG_WARN("There is no default display");
+        return;
+    }
+
+#if LV_USE_PERF_MONITOR
+    if(disp->perf_label != NULL) {
+        lv_obj_move_to_index(disp->perf_label, -1);
+    }
+#endif
+
+#if LV_USE_MEM_MONITOR
+    if(disp->mem_label != NULL) {
+        lv_obj_move_to_index(disp->mem_label, -1);
+    }
+#endif
+}
+
 #if LV_USE_PERF_MONITOR
 
 void lv_sysmon_show_performance(lv_display_t * disp)

@@ -46,6 +46,13 @@ extern "C" {
  */
 lv_obj_t * lv_sysmon_create(lv_display_t * disp);
 
+/**
+ * Move the built-in system monitor labels above other objects on the system
+ * layer.
+ * @param disp      target display, NULL: use the default display
+ */
+void lv_sysmon_bring_to_foreground(lv_display_t * disp);
+
 #if LV_USE_PERF_MONITOR
 
 /**
