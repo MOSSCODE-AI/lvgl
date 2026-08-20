@@ -81,7 +81,7 @@ void lv_draw_ambiq_gradient_arc(lv_draw_task_t * t, const lv_draw_gradient_arc_d
     }
 
     nema_vg_paint_clear(unit->vg_paint);
-    nema_vg_paint_set_opacity(unit->vg_paint, 1.0f);
+    nema_vg_paint_set_opacity(unit->vg_paint, dsc->start_color.alpha / 255.0f);
     if(dsc->use_gradient) {
         lv_draw_ambiq_set_conical_gradient(unit->vg_grad, unit->vg_paint, dsc, cx, cy);
     }
@@ -211,8 +211,8 @@ static void lv_draw_ambiq_draw_ring_segments(float cx, float cy, const lv_draw_g
                                         dsc->radius,
                                         segment_start,
                                         segment_end,
-                                        dsc->rounded && first_segment,
-                                        dsc->rounded && last_segment,
+                                        dsc->round_start && first_segment,
+                                        dsc->round_end && last_segment,
                                         paint);
         segment_start = segment_end;
         first_segment = false;

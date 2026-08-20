@@ -46,6 +46,8 @@ void lv_draw_gradient_arc_dsc_init(lv_draw_gradient_arc_dsc_t * dsc)
     dsc->width = 1.0f;
     dsc->start_color = lv_color_to_32(lv_color_black(), LV_OPA_COVER);
     dsc->end_color = lv_color_to_32(lv_color_black(), LV_OPA_COVER);
+    dsc->round_start = true;
+    dsc->round_end = true;
     dsc->use_gradient = true;
     dsc->base.dsc_size = sizeof(lv_draw_gradient_arc_dsc_t);
 }

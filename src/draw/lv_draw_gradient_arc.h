@@ -35,7 +35,8 @@ typedef struct {
     float end_angle;
     lv_color32_t start_color;
     lv_color32_t end_color;
-    bool rounded;
+    bool round_start;
+    bool round_end;
     bool use_gradient;
 } lv_draw_gradient_arc_dsc_t;
 

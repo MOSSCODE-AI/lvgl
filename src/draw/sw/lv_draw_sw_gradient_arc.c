@@ -70,7 +70,8 @@ void lv_draw_sw_gradient_arc(lv_draw_task_t * t, const lv_draw_gradient_arc_dsc_
     const float inner_radius = dsc->radius - (dsc->width * 0.5f);
     const float outer_radius = dsc->radius + (dsc->width * 0.5f);
     const float cap_radius = dsc->width * 0.5f;
-    const bool draw_caps = dsc->rounded && sweep < 360.0f;
+    const bool draw_start_cap = dsc->round_start && sweep < 360.0f;
+    const bool draw_end_cap = dsc->round_end && sweep < 360.0f;
     const float start_rad = start_angle * GRADIENT_ARC_PI / 180.0f;
     const float end_rad = normalize_angle(dsc->start_angle + sweep) * GRADIENT_ARC_PI / 180.0f;
     const float start_cap_x = dsc->center_x + (cosf(start_rad) * dsc->radius);
@@ -105,22 +106,25 @@ void lv_draw_sw_gradient_arc(lv_draw_task_t * t, const lv_draw_gradient_arc_dsc_
                 coverage = ring_coverage(radius, inner_radius, outer_radius);
             }
 
-            if(draw_caps) {
+            if(draw_start_cap) {
                 const float px = (float)x + 0.5f;
                 const float py = (float)y + 0.5f;
                 const float start_dx = px - start_cap_x;
                 const float start_dy = py - start_cap_y;
-                const float end_dx = px - end_cap_x;
-                const float end_dy = py - end_cap_y;
                 const uint8_t start_cap_coverage = circle_coverage(sqrtf((start_dx * start_dx) + (start_dy * start_dy)),
                                                                     cap_radius);
-                const uint8_t end_cap_coverage = circle_coverage(sqrtf((end_dx * end_dx) + (end_dy * end_dy)),
-                                                                  cap_radius);
-
                 if(start_cap_coverage > coverage) {
                     coverage = start_cap_coverage;
                     ratio = 0.0f;
                 }
+            }
+            if(draw_end_cap) {
+                const float px = (float)x + 0.5f;
+                const float py = (float)y + 0.5f;
+                const float end_dx = px - end_cap_x;
+                const float end_dy = py - end_cap_y;
+                const uint8_t end_cap_coverage = circle_coverage(sqrtf((end_dx * end_dx) + (end_dy * end_dy)),
+                                                                  cap_radius);
                 if(end_cap_coverage > coverage) {
                     coverage = end_cap_coverage;
                     ratio = 1.0f;
