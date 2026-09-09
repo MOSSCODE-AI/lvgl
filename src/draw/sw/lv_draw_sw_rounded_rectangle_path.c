@@ -1,4 +1,4 @@
-// Copyright wuyin Oy 2026. All rights reserved.
+// Copyright wuyin 2026. All rights reserved.
 
 /**
  * @file lv_draw_sw_rounded_rectangle_path.c
