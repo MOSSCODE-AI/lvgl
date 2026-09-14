@@ -198,6 +198,7 @@ typedef enum {
     LV_COLOR_FORMAT_NEMA_TSC6AP       = 0x33,
     LV_COLOR_FORMAT_NEMA_TSC12        = 0x34,
     LV_COLOR_FORMAT_NEMA_TSC12A       = 0x35,
+    LV_COLOR_FORMAT_NEMA_TSVG         = 0x36,
     LV_COLOR_FORMAT_NEMA_TSC_END      = LV_COLOR_FORMAT_NEMA_TSC12A,
 
     /*Color formats in which LVGL can render*/

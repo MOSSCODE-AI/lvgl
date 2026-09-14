@@ -242,6 +242,10 @@ void lv_image_set_src(lv_obj_t * obj, const void * src)
         header.h = size.y;
     }
 
+    if(header.cf == LV_COLOR_FORMAT_NEMA_TSVG)
+    {
+        img->use_svg = true;
+    }
     img->src_type = src_type;
     img->w        = header.w;
     img->h        = header.h;
@@ -481,6 +485,13 @@ void lv_image_set_bitmap_map_src(lv_obj_t * obj, const lv_image_dsc_t * src)
     lv_image_t * img = (lv_image_t *)obj;
     img->bitmap_mask_src = src;
     lv_obj_invalidate(obj);
+}
+
+void lv_image_set_use_svg(lv_obj_t * obj, bool use_svg)
+{
+    LV_ASSERT_OBJ(obj, MY_CLASS);
+    lv_image_t * img = (lv_image_t *)obj;
+    img->use_svg = use_svg;
 }
 
 /*=====================
@@ -871,6 +882,10 @@ static void draw_image(lv_event_t * e)
             lv_area_t clip_area_ori = layer->_clip_area;
 
             lv_image_get_pivot(obj, &draw_dsc.pivot);
+            if(img->use_svg) {
+                draw_dsc.pivot.x = lv_pct_to_px(img->pivot.x, lv_obj_get_width(obj));
+                draw_dsc.pivot.y = lv_pct_to_px(img->pivot.y, lv_obj_get_height(obj));
+            }
             draw_dsc.scale_x = img->scale_x;
             draw_dsc.scale_y = img->scale_y;
             draw_dsc.rotation = img->rotation;
@@ -879,10 +894,20 @@ static void draw_image(lv_event_t * e)
             draw_dsc.bitmap_mask_src = img->bitmap_mask_src;
             draw_dsc.src = img->src;
 
-            lv_area_set(&draw_dsc.image_area, obj->coords.x1,
-                        obj->coords.y1,
-                        obj->coords.x1 + img->w - 1,
-                        obj->coords.y1 + img->h - 1);
+            if(img->use_svg)
+            {
+                /* TSVG uses the widget area as its output area, so
+                 * lv_obj_set_size() controls the rendered width and height. */
+                draw_dsc.image_area = obj->coords;
+            }
+            else
+            {
+
+                lv_area_set(&draw_dsc.image_area, obj->coords.x1,
+                            obj->coords.y1,
+                            obj->coords.x1 + img->w - 1,
+                            obj->coords.y1 + img->h - 1);
+            }
 
             draw_dsc.clip_radius = lv_obj_get_style_radius(obj, LV_PART_MAIN);
 
@@ -913,7 +938,7 @@ static void draw_image(lv_event_t * e)
             else {
                 coords = draw_dsc.image_area;
             }
-
+            draw_dsc.use_svg = img->use_svg;
             lv_draw_image(layer, &draw_dsc, &coords);
             layer->_clip_area = clip_area_ori;
         }

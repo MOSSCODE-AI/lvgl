@@ -322,9 +322,11 @@ static int32_t evaluate(lv_draw_unit_t * draw_unit, lv_draw_task_t * task)
 
             lv_draw_image_dsc_t * draw_dsc_image = task->draw_dsc;
 
-            nema_tex_format_t nema_cf = lv_ambiq_color_format_map_src(draw_dsc_image->header.cf);
-            if(nema_cf == COLOR_FORMAT_INVALID) {
-                return 0;
+            if(!draw_dsc_image->use_svg) {
+                nema_tex_format_t nema_cf = lv_ambiq_color_format_map_src(draw_dsc_image->header.cf);
+                if(nema_cf == COLOR_FORMAT_INVALID) {
+                    return 0;
+                }
             }
 
             //Set blend mode

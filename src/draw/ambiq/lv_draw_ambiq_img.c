@@ -72,6 +72,11 @@
 static void lv_draw_ambiq_image_core(lv_draw_task_t * t,
                                      const lv_draw_image_dsc_t * draw_dsc,
                                      const lv_area_t * coords);
+#if LV_USE_AMBIQ_VG
+static void lv_draw_ambiq_tsvg(lv_draw_task_t * t,
+                               const lv_draw_image_dsc_t * draw_dsc,
+                               const lv_area_t * coords);
+#endif
 
 /**********************
  *  STATIC VARIABLES
@@ -138,7 +143,6 @@ void lv_draw_ambiq_image(lv_draw_task_t * t, const lv_draw_image_dsc_t * draw_ds
     }
 
 
-
     // TODO: compare the draw_area min and max value with coordinate range limitation.
     lv_draw_ambiq_image_core(t, draw_dsc, coords);
 
@@ -154,6 +158,17 @@ static void lv_draw_ambiq_image_core(lv_draw_task_t * t,
                                      const lv_draw_image_dsc_t * draw_dsc,
                                      const lv_area_t * coords)
 {
+#if LV_USE_AMBIQ_VG
+    if(draw_dsc->use_svg) {
+        lv_draw_ambiq_tsvg(t, draw_dsc, coords);
+        return;
+    }
+#else
+    if(draw_dsc->use_svg) {
+        LV_LOG_WARN("TSVG drawing requires LV_USE_AMBIQ_VG");
+        return;
+    }
+#endif
 
     // handle tile image
     bool tile_draw_one_by_one = false;
@@ -179,6 +194,7 @@ static void lv_draw_ambiq_image_core(lv_draw_task_t * t,
     // decode and bind the image texture
     lv_image_decoder_dsc_t decoder_dsc;
     lv_result_t res = lv_draw_ambiq_decode_image(draw_dsc->src, transformed, &decoder_dsc, false);
+    // LV_LOG_USER("img devode: w:%d h:%d  draw: w:%d h:%d", decoder_dsc.decoded->header.w, decoder_dsc.decoded->header.h, draw_dsc->header.w, draw_dsc->header.h);
     if(res != LV_RESULT_OK) {
         LV_LOG_ERROR("Failed to open image");
         return;
@@ -244,8 +260,6 @@ static void lv_draw_ambiq_image_core(lv_draw_task_t * t,
 
     blending_mode |= blend_op_tex;
     blending_mode |= blend_op_mask;
-
-
 
     // handle recolor
     bool is_alpha_only = false;
@@ -390,5 +404,115 @@ static void lv_draw_ambiq_image_core(lv_draw_task_t * t,
 
 }
 
+
+#if LV_USE_AMBIQ_VG
+static void lv_draw_ambiq_tsvg(lv_draw_task_t * t,
+                               const lv_draw_image_dsc_t * draw_dsc,
+                               const lv_area_t * coords)
+{
+    lv_layer_t * layer = t->target_layer;
+    lv_draw_buf_t * draw_buf = layer->draw_buf;
+    nema_cmdlist_t * current_cl = nema_cl_get_bound();
+
+    if(current_cl == NULL) {
+        LV_LOG_ERROR("No command list bound for TSVG drawing");
+        return;
+    }
+
+    // nema_cl_rewind(current_cl);
+    if(lv_draw_ambiq_vg_start(draw_buf->header.w, draw_buf->header.h) != LV_RESULT_OK) {
+        LV_LOG_ERROR("Failed to initialize NemaVG for TSVG drawing");
+        return;
+    }
+
+    lv_image_decoder_dsc_t decoder_dsc;
+    lv_result_t res = lv_draw_ambiq_decode_image(draw_dsc->src, false, &decoder_dsc, false);
+    if(res != LV_RESULT_OK) {
+        LV_LOG_ERROR("Failed to decode TSVG image");
+        return;
+    }
+
+    const void * tsvg_data = decoder_dsc.decoded->data;
+    if(tsvg_data == NULL) {
+        LV_LOG_ERROR("Decoded TSVG data is NULL");
+        lv_image_decoder_close(&decoder_dsc);
+        return;
+    }
+
+    uint32_t svg_w;
+    uint32_t svg_h;
+    nema_vg_get_tsvg_resolution(tsvg_data, &svg_w, &svg_h);
+    if(svg_w == 0U || svg_h == 0U) {
+        svg_w = decoder_dsc.decoded->header.w;
+        svg_h = decoder_dsc.decoded->header.h;
+        if(svg_w == 0U || svg_h == 0U) {
+            LV_LOG_ERROR("Invalid TSVG resolution");
+            lv_image_decoder_close(&decoder_dsc);
+            return;
+        }
+    }
+
+    nema_tex_format_t dst_format = lv_ambiq_color_format_map_des(draw_buf->header.cf);
+    if(dst_format == COLOR_FORMAT_INVALID) {
+        LV_LOG_ERROR("Unsupported TSVG destination color format");
+        lv_image_decoder_close(&decoder_dsc);
+        return;
+    }
+
+    const int32_t output_w = coords->x2 - coords->x1 + 1;
+    const int32_t output_h = coords->y2 - coords->y1 + 1;
+    if(output_w <= 0 || output_h <= 0) {
+        lv_image_decoder_close(&decoder_dsc);
+        return;
+    }
+
+    const int32_t output_x = coords->x1 - layer->buf_area.x1;
+    const int32_t output_y = coords->y1 - layer->buf_area.y1;
+    lv_area_t output_area;
+    lv_image_buf_get_transformed_area(&output_area,
+                                      output_w,
+                                      output_h,
+                                      draw_dsc->rotation,
+                                      LV_SCALE_NONE,
+                                      LV_SCALE_NONE,
+                                      &draw_dsc->pivot);
+    lv_area_move(&output_area, output_x, output_y);
+    const lv_area_t draw_buf_area = {
+        .x1 = 0,
+        .y1 = 0,
+        .x2 = (int32_t)draw_buf->header.w - 1,
+        .y2 = (int32_t)draw_buf->header.h - 1,
+    };
+    lv_area_t clipped_output_area;
+    if(!lv_area_intersect(&clipped_output_area, &output_area, &draw_buf_area)) {
+        lv_image_decoder_close(&decoder_dsc);
+        return;
+    }
+
+    nema_matrix3x3_t matrix;
+    nema_mat3x3_load_identity(matrix);
+    nema_mat3x3_scale(matrix,
+                      (float)output_w / (float)svg_w,
+                      (float)output_h / (float)svg_h);
+    nema_mat3x3_translate(matrix, (float)-draw_dsc->pivot.x, (float)-draw_dsc->pivot.y);
+    nema_mat3x3_rotate(matrix, draw_dsc->rotation / 10.0f);
+    nema_mat3x3_translate(matrix, (float)draw_dsc->pivot.x, (float)draw_dsc->pivot.y);
+    nema_mat3x3_translate(matrix, (float)output_x, (float)output_y);
+    nema_vg_set_global_matrix(matrix);
+
+    int32_t stride = draw_buf->header.stride != 0 ? (int32_t)draw_buf->header.stride : -1;
+    nema_bind_dst_tex((uintptr_t)draw_buf->data, draw_buf->header.w, draw_buf->header.h, dst_format, stride);
+    nema_set_clip(clipped_output_area.x1,
+                  clipped_output_area.y1,
+                  lv_area_get_width(&clipped_output_area),
+                  lv_area_get_height(&clipped_output_area));
+    nema_vg_draw_tsvg(tsvg_data);
+
+    nema_cl_submit(current_cl);
+    nema_cl_wait(current_cl);
+    nema_cl_rewind(current_cl);
+    lv_image_decoder_close(&decoder_dsc);
+}
+#endif
 
 #endif /*LV_USE_DRAW_AMBIQ*/

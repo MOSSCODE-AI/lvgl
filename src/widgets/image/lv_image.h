@@ -220,6 +220,7 @@ void lv_image_set_inner_align(lv_obj_t * obj, lv_image_align_t align);
  */
 void lv_image_set_bitmap_map_src(lv_obj_t * obj, const lv_image_dsc_t * src);
 
+
 /*=====================
  * Getter functions
  *====================*/

@@ -67,6 +67,7 @@ typedef enum {
 #endif
     LV_DRAW_TASK_TYPE_GRADIENT_ARC,
     LV_DRAW_TASK_TYPE_ROUNDED_RECTANGLE_PATH,
+    LV_DRAW_TASK_TYPE_TSVG,
 } lv_draw_task_type_t;
 
 typedef enum {

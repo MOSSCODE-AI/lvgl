@@ -333,9 +333,26 @@ lv_result_t lv_bin_decoder_open(lv_image_decoder_t * decoder, lv_image_decoder_d
             if(base == NULL) return LV_RESULT_INVALID;
             lv_memcpy(&header, base + img_addr, sizeof(lv_image_header_t));
 
-            res = lv_draw_buf_init(decoded, header.w, header.h, header.cf, header.stride, \
-                                                    (void *)(base + img_addr + sizeof(lv_image_header_t)), \
-                                                    header.w * header.h * lv_color_format_get_bpp(header.cf) / 8);
+            if(header.cf == LV_COLOR_FORMAT_NEMA_TSVG)
+            {
+                uint32_t len;
+                lv_memcpy(&len,
+                          base + img_addr + sizeof(lv_image_header_t),
+                          sizeof(len));
+                if(len == 0U) {
+                    return LV_RESULT_INVALID;
+                }
+                // LV_LOG_USER("TSVG image length: %lu", len);
+                res = lv_draw_buf_init(decoded, header.w, header.h, header.cf, header.stride, \
+                                       (void *)(base + img_addr + sizeof(lv_image_header_t) + sizeof(len)), \
+                                       len);
+            }
+            else
+            {
+                res = lv_draw_buf_init(decoded, header.w, header.h, header.cf, header.stride, \
+                                                        (void *)(base + img_addr + sizeof(lv_image_header_t)), \
+                                                        header.w * header.h * lv_color_format_get_bpp(header.cf) / 8);
+            }
         }
 
 

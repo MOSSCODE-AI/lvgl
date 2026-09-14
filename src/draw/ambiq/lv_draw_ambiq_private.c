@@ -787,7 +787,7 @@ lv_result_t lv_draw_ambiq_decode_image(const void * src, bool transformed, lv_im
     const lv_image_header_t * header = &decoder_dsc->decoded->header;
 
     nema_tex_format_t nema_cf = lv_ambiq_color_format_map_src(header->cf);
-    if(nema_cf == COLOR_FORMAT_INVALID) {
+    if(header->cf != LV_COLOR_FORMAT_NEMA_TSVG && nema_cf == COLOR_FORMAT_INVALID) {
         lv_image_decoder_close(decoder_dsc);
         LV_LOG_WARN("GPU failed, not supported color format!");
         return LV_RESULT_INVALID;
