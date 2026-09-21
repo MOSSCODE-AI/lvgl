@@ -521,13 +521,14 @@ lv_result_t lv_draw_ambiq_stencil_buffer_adjust(lv_draw_ambiq_unit_t * unit,
 #error "Under development! Define this macro to 0 to work in sync mode."
 #else
             lv_draw_buf_destroy(unit->stencil_buffer);
+            unit->stencil_buffer = NULL;
 #endif
         #if LV_USE_AMBIQ_VG_USE_PSRAM
             stencil_buffer = lv_draw_buf_create_psram(width, height, LV_COLOR_FORMAT_A8, 0);
         #else
             stencil_buffer = lv_draw_buf_create(width, height, LV_COLOR_FORMAT_A8, 0);
         #endif
-
+            unit->stencil_buffer = stencil_buffer;
         }
         else {
             unit->stencil_buffer = reshaped_buffer;
