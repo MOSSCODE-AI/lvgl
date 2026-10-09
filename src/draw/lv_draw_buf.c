@@ -20,6 +20,7 @@
 #define default_handlers LV_GLOBAL_DEFAULT()->draw_buf_handlers
 #define font_draw_buf_handlers LV_GLOBAL_DEFAULT()->font_draw_buf_handlers
 #define image_cache_draw_buf_handlers LV_GLOBAL_DEFAULT()->image_cache_draw_buf_handlers
+#define psram_ex_draw_buf_handlers LV_GLOBAL_DEFAULT()->psram_ex_draw_buf_handlers
 
 /**********************
  *      TYPEDEFS
@@ -57,6 +58,7 @@ void lv_draw_buf_init_handlers(void)
     lv_draw_buf_init_with_default_handlers(&default_handlers);
     lv_draw_buf_init_with_default_handlers(&font_draw_buf_handlers);
     lv_draw_buf_init_with_default_handlers(&image_cache_draw_buf_handlers);
+    lv_draw_buf_init_with_default_handlers(&psram_ex_draw_buf_handlers);
 }
 
 void lv_draw_buf_init_with_default_handlers(lv_draw_buf_handlers_t * handlers)
@@ -96,6 +98,11 @@ lv_draw_buf_handlers_t * lv_draw_buf_get_font_handlers(void)
 lv_draw_buf_handlers_t * lv_draw_buf_get_image_handlers(void)
 {
     return &image_cache_draw_buf_handlers;
+}
+
+lv_draw_buf_handlers_t * lv_draw_buf_get_psram_ex_handlers(void)
+{
+    return &psram_ex_draw_buf_handlers;
 }
 
 uint32_t lv_draw_buf_width_to_stride(uint32_t w, lv_color_format_t color_format)
@@ -261,6 +268,11 @@ lv_draw_buf_t * lv_draw_buf_create(uint32_t w, uint32_t h, lv_color_format_t cf,
 lv_draw_buf_t * lv_draw_buf_create_psram(uint32_t w, uint32_t h, lv_color_format_t cf, uint32_t stride)
 {
     return lv_draw_buf_create_ex(&image_cache_draw_buf_handlers, w, h, cf, stride);
+}
+
+lv_draw_buf_t * lv_draw_buf_create_psram_ex(uint32_t w, uint32_t h, lv_color_format_t cf, uint32_t stride)
+{
+    return lv_draw_buf_create_ex(&psram_ex_draw_buf_handlers, w, h, cf, stride);
 }
 
 

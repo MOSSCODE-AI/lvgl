@@ -141,6 +141,7 @@ void lv_draw_buf_handlers_init(lv_draw_buf_handlers_t * handlers,
 lv_draw_buf_handlers_t * lv_draw_buf_get_handlers(void);
 lv_draw_buf_handlers_t * lv_draw_buf_get_font_handlers(void);
 lv_draw_buf_handlers_t * lv_draw_buf_get_image_handlers(void);
+lv_draw_buf_handlers_t * lv_draw_buf_get_psram_ex_handlers(void);
 
 
 /**
@@ -219,6 +220,13 @@ void lv_draw_buf_clear(lv_draw_buf_t * draw_buf, const lv_area_t * a);
 lv_draw_buf_t * lv_draw_buf_create(uint32_t w, uint32_t h, lv_color_format_t cf, uint32_t stride);
 
 lv_draw_buf_t * lv_draw_buf_create_psram(uint32_t w, uint32_t h, lv_color_format_t cf, uint32_t stride);
+
+/**
+ * Create a draw buffer in psram_ex_heap. Unlike the pool behind
+ * lv_draw_buf_create_psram(), that arena is left cacheable, so a buffer shared
+ * with the GPU must be flushed and invalidated through the draw buf API.
+ */
+lv_draw_buf_t * lv_draw_buf_create_psram_ex(uint32_t w, uint32_t h, lv_color_format_t cf, uint32_t stride);
 
 
 /**

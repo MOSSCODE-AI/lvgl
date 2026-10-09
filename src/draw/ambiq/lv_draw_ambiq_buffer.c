@@ -62,6 +62,7 @@
 #define default_handlers LV_GLOBAL_DEFAULT()->draw_buf_handlers
 #define font_draw_buf_handlers LV_GLOBAL_DEFAULT()->font_draw_buf_handlers
 #define image_cache_draw_buf_handlers LV_GLOBAL_DEFAULT()->image_cache_draw_buf_handlers
+#define psram_ex_draw_buf_handlers LV_GLOBAL_DEFAULT()->psram_ex_draw_buf_handlers
 
 
 /**********************
@@ -310,6 +311,26 @@ static void lv_draw_ambiq_buffer_invalidate(const lv_draw_buf_t * draw_buf, cons
     lv_draw_ambiq_buffer_invalidate_core(NEMA_MEM_POOL_FB, draw_buf, area);
 }
 
+static void * lv_draw_ambiq_buffer_malloc_psram_ex(size_t size, lv_color_format_t color_format)
+{
+    return lv_draw_ambiq_buffer_malloc_core(NEMA_MEM_POOL_PSRAM_EX, size, color_format);
+}
+
+static void lv_draw_ambiq_buffer_free_psram_ex(void * buf)
+{
+    lv_draw_ambiq_buffer_free_core(NEMA_MEM_POOL_PSRAM_EX, buf);
+}
+
+static void lv_draw_ambiq_buffer_flush_psram_ex(const lv_draw_buf_t * draw_buf, const lv_area_t * area)
+{
+    lv_draw_ambiq_buffer_flush_core(NEMA_MEM_POOL_PSRAM_EX, draw_buf, area);
+}
+
+static void lv_draw_ambiq_buffer_invalidate_psram_ex(const lv_draw_buf_t * draw_buf, const lv_area_t * area)
+{
+    lv_draw_ambiq_buffer_invalidate_core(NEMA_MEM_POOL_PSRAM_EX, draw_buf, area);
+}
+
 static void * lv_draw_ambiq_buffer_malloc_texture(size_t size, lv_color_format_t color_format)
 {
     return lv_draw_ambiq_buffer_malloc_core(NEMA_MEM_POOL_ASSETS, size, color_format);
@@ -362,6 +383,17 @@ void lv_draw_ambiq_init_buf_handlers(void)
     font_draw_buf_handlers.clear_cb = lv_draw_ambiq_buffer_clean;
     font_draw_buf_handlers.copy_cb = lv_draw_ambiq_buffer_copy;
 
+    /* Unlike the FB/ASSETS pools, psram_ex_heap is left out of the non-cacheable
+     * MPU regions, so the flush and invalidate callbacks here do real D-cache
+     * maintenance instead of just a __DSB(). */
+    psram_ex_draw_buf_handlers.buf_malloc_cb = lv_draw_ambiq_buffer_malloc_psram_ex;
+    psram_ex_draw_buf_handlers.buf_free_cb = lv_draw_ambiq_buffer_free_psram_ex;
+    psram_ex_draw_buf_handlers.flush_cache_cb = lv_draw_ambiq_buffer_flush_psram_ex;
+    psram_ex_draw_buf_handlers.invalidate_cache_cb = lv_draw_ambiq_buffer_invalidate_psram_ex;
+    psram_ex_draw_buf_handlers.align_pointer_cb = lv_draw_ambiq_buffer_align;
+    psram_ex_draw_buf_handlers.width_to_stride_cb = lv_draw_ambiq_buffer_width_to_stride;
+    psram_ex_draw_buf_handlers.clear_cb = lv_draw_ambiq_buffer_clean;
+    psram_ex_draw_buf_handlers.copy_cb = lv_draw_ambiq_buffer_copy;
 }
 
 
