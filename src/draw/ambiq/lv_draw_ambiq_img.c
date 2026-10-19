@@ -62,6 +62,13 @@
  *      DEFINES
  *********************/
 
+/* Rasterize rotated images in 4x4 tiles, so neighbouring pixels fetch
+ * neighbouring texels; this matters for large textures in PSRAM. NemaGFX
+ * needs the destination width and height to be multiples of 4. */
+#ifndef LV_AMBIQ_ROTATION_TILING
+#define LV_AMBIQ_ROTATION_TILING 1
+#endif
+
 /**********************
  *      TYPEDEFS
  **********************/
@@ -373,17 +380,30 @@ static void lv_draw_ambiq_image_core(lv_draw_task_t * t,
         nema_mat3x3_mul_vec(m_draw, &x3, &y3);
 
         //draw
+#if LV_AMBIQ_ROTATION_TILING
+        const lv_draw_buf_t * dest_buf = layer->draw_buf;
+        const bool tiling = draw_dsc->rotation != 0 && dest_buf != NULL &&
+                            (dest_buf->header.w % 4) == 0 && (dest_buf->header.h % 4) == 0;
+        if(tiling) {
+            nema_enable_tiling(1);
+        }
+#endif
         nema_raster_quad_f(x0, y0,
                            x1, y1,
                            x2, y2,
                            x3, y3);
+#if LV_AMBIQ_ROTATION_TILING
+        // switch it off again: a later destination may not be a multiple of 4
+        if(tiling) {
+            nema_enable_tiling(0);
+        }
+#endif
     }
 
 
 
 
     // handle clip radius(TODO)
-    // enable tilling when rotation(TODO)
     // AL88 format is this same as NEMA_AL88?
 
 
