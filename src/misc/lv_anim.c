@@ -74,6 +74,7 @@ void lv_anim_core_init(void)
     anim_mark_list_change(); /*Turn off the animation timer*/
     state.anim_list_changed = false;
     state.anim_run_round = false;
+    state.anim_already_running = false;
 }
 
 void lv_anim_core_deinit(void)
@@ -583,7 +584,11 @@ void lv_anim_set_external_data(lv_anim_t * anim, void * data, void (* free_cb)(v
 static void anim_timer(lv_timer_t * param)
 {
     LV_UNUSED(param);
-
+    if(state.anim_already_running)
+    {
+         return;
+    }
+    state.anim_already_running = true;
     /*Flip the run round*/
     state.anim_run_round = state.anim_run_round ? false : true;
 
@@ -670,7 +675,7 @@ static void anim_timer(lv_timer_t * param)
         else
             a = lv_ll_get_next(anim_ll_p, a);
     }
-
+    state.anim_already_running = false;
 }
 
 /**

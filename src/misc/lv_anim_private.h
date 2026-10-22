@@ -28,6 +28,7 @@ typedef struct {
     bool anim_list_changed;
     bool anim_run_round;
     bool anim_vsync_registered;
+    bool anim_already_running;
     lv_timer_t * timer;
     lv_ll_t anim_ll;
 } lv_anim_state_t;
