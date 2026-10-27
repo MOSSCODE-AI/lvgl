@@ -182,6 +182,12 @@ static void lv_draw_ambiq_draw_ring_segment(float cx,
                                             bool end_rounded,
                                             NEMA_VG_PAINT_HANDLE paint)
 {
+    /* NemaVG expects each segment within one revolution. A sweep crossing
+     * 360 degrees is split above, so shift the following segment to 0..90. */
+    while(start_angle >= 360.0f) {
+        start_angle -= 360.0f;
+        end_angle -= 360.0f;
+    }
     nema_vg_stroke_set_cap_style(start_rounded ? NEMA_VG_CAP_ROUND : NEMA_VG_CAP_BUTT,
                                  end_rounded ? NEMA_VG_CAP_ROUND : NEMA_VG_CAP_BUTT);
     nema_vg_draw_ring(cx, cy, radius, start_angle, end_angle, paint);
