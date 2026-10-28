@@ -69,6 +69,18 @@
 #define LV_AMBIQ_ROTATION_TILING 1
 #endif
 
+/* Texture burst A/B test for the 480x480 RGB565 benchmark.
+ * -1: untouched original path; 0: hardware maximum; 4/5/6: 16/32/64 bytes.
+ * The blender uses the SDK default (0) in the controlled tests. */
+#ifndef LV_AMBIQ_TEST_TEX_BURST_LOG2
+#define LV_AMBIQ_TEST_TEX_BURST_LOG2 4
+#endif
+#if LV_AMBIQ_TEST_TEX_BURST_LOG2 != -1 && LV_AMBIQ_TEST_TEX_BURST_LOG2 != 0 && \
+    LV_AMBIQ_TEST_TEX_BURST_LOG2 != 4 && LV_AMBIQ_TEST_TEX_BURST_LOG2 != 5 && \
+    LV_AMBIQ_TEST_TEX_BURST_LOG2 != 6
+#error "Texture burst test must be -1, 0, 4, 5 or 6"
+#endif
+
 /**********************
  *      TYPEDEFS
  **********************/
@@ -298,6 +310,15 @@ static void lv_draw_ambiq_image_core(lv_draw_task_t * t,
 
     lv_ambiq_set_blend_blit((lv_draw_ambiq_unit_t *)t->draw_unit, blending_mode);
 
+
+    const bool burst_test_image = 1;
+#if LV_AMBIQ_TEST_TEX_BURST_LOG2 >= 0
+    if(burst_test_image) {
+        /* Enqueue after CL binding, before the actual draw (also after wake). */
+        nema_set_burst_size(0, LV_AMBIQ_TEST_TEX_BURST_LOG2);
+    }
+#endif
+
     if(!transformed) {
         //Blit
         if(!tile_draw_one_by_one) {
@@ -415,7 +436,16 @@ static void lv_draw_ambiq_image_core(lv_draw_task_t * t,
     nema_cmdlist_t * current_cl = nema_cl_get_bound();
     nema_cl_submit(current_cl);
     nema_cl_wait(current_cl);
+    /* Capture the executed setting before restoring the SDK default. */
+    const uint32_t burst_reg = burst_test_image ? nema_reg_read(NEMA_BURST_SIZE) : 0;
     nema_cl_rewind(current_cl);
+#if LV_AMBIQ_TEST_TEX_BURST_LOG2 >= 0
+    if(burst_test_image) {
+        /* Queue the restore for common_end/the next submission. Do not
+         * resubmit the image command list, which would draw it twice. */
+        nema_set_burst_size(0, 0);
+    }
+#endif
 
     lv_image_decoder_close(&decoder_dsc);
     if(need_release_mask_decoder) {

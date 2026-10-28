@@ -712,13 +712,27 @@ uint32_t lv_draw_ambiq_bind_image_texture(const lv_draw_buf_t * decoded, uint32_
                          (header->stride == 0) ? -1 : (int32_t)header->stride;
 
     //bind image
-    nema_bind_tex(NEMA_TEX1,
-                  (uintptr_t)decoded->data + lut_size * 4,
-                  header->w,
-                  header->h,
-                  nema_cf,
-                  tex_stride,
-                  NEMA_FILTER_BL | tex_wrap_mode);
+
+    if(header->w >= LV_DIS_WIDTH && header->h >= LV_DIS_HEIGHT && header->cf == LV_COLOR_FORMAT_RGB565)
+    {
+        nema_bind_tex(NEMA_TEX1,
+                    (uintptr_t)decoded->data + lut_size * 4,
+                    header->w,
+                    header->h,
+                    nema_cf,
+                    tex_stride,
+                    NEMA_FILTER_PS | tex_wrap_mode);
+    }
+    else
+    {
+        nema_bind_tex(NEMA_TEX1,
+                    (uintptr_t)decoded->data + lut_size * 4,
+                    header->w,
+                    header->h,
+                    nema_cf,
+                    tex_stride,
+                    NEMA_FILTER_BL | tex_wrap_mode);
+    }
 
     //Set blend op
     return blend_op_internal;
