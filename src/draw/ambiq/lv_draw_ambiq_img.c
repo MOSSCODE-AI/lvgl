@@ -312,12 +312,19 @@ static void lv_draw_ambiq_image_core(lv_draw_task_t * t,
 
 
     const bool burst_test_image = 1;
-#if LV_AMBIQ_TEST_TEX_BURST_LOG2 >= 0
-    if(burst_test_image) {
-        /* Enqueue after CL binding, before the actual draw (also after wake). */
-        nema_set_burst_size(0, LV_AMBIQ_TEST_TEX_BURST_LOG2);
+    if(draw_dsc->header.w >= LV_DIS_WIDTH && draw_dsc->header.h >= LV_DIS_HEIGHT)
+    {
+        #if LV_AMBIQ_TEST_TEX_BURST_LOG2 >= 0
+            if(burst_test_image) {
+                /* Enqueue after CL binding, before the actual draw (also after wake). */
+                nema_set_burst_size(0, LV_AMBIQ_TEST_TEX_BURST_LOG2);
+            }
+        #endif
     }
-#endif
+    else
+    {
+        nema_set_burst_size(0,0);
+    }
 
     if(!transformed) {
         //Blit
