@@ -667,6 +667,8 @@ static inline size_t get_draw_dsc_size(lv_draw_task_type_t type)
             /* Note that default is not added here because when adding new draw task type,
              * if forget to add case, the compiler will automatically report a warning.
              */
+        default:
+            break;
     }
 
     return 0;
