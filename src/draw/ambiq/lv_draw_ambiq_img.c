@@ -57,6 +57,7 @@
 #include "../../misc/lv_color.h"
 #include "../../stdlib/lv_string.h"
 #include "../../core/lv_global.h"
+#include "lv_draw_ambiq_scale_clip.h"
 
 /*********************
  *      DEFINES
@@ -67,6 +68,10 @@
  * needs the destination width and height to be multiples of 4. */
 #ifndef LV_AMBIQ_ROTATION_TILING
 #define LV_AMBIQ_ROTATION_TILING 1
+#endif
+
+#ifndef LV_AMBIQ_SCALE_CLIP
+#define LV_AMBIQ_SCALE_CLIP 1
 #endif
 
 /* Texture burst A/B test for the 480x480 RGB565 benchmark.
@@ -407,6 +412,45 @@ static void lv_draw_ambiq_image_core(lv_draw_task_t * t,
         nema_mat3x3_mul_vec(m_draw, &x2, &y2);
         nema_mat3x3_mul_vec(m_draw, &x3, &y3);
 
+    
+        bool draw_quad = true;
+        unsigned clipped_count = 0;
+        lv_ambiq_scale_point_t clipped[LV_AMBIQ_SCALE_CLIP_CAPACITY];
+#if LV_AMBIQ_SCALE_CLIP
+        if(draw_dsc->skew_x == 0 && draw_dsc->skew_y == 0 &&
+           draw_dsc->scale_x > 0 && draw_dsc->scale_y > 0 &&
+           (draw_dsc->scale_x != LV_SCALE_NONE || draw_dsc->scale_y != LV_SCALE_NONE)) {
+            // Nema's quad coordinate range is smaller than a greatly enlarged
+            // map. Only rasterize the visible destination; retain the inverse
+            // texture matrix above. One pixel outside preserves edge AA.
+            lv_area_t visible;
+            draw_quad = lv_area_intersect(&visible, &t->clip_area, &layer->buf_area);
+            if(draw_quad) {
+                const lv_ambiq_scale_rect_t clip = {
+                    (float)(visible.x1 - layer->buf_area.x1) - 1.0f,
+                    (float)(visible.y1 - layer->buf_area.y1) - 1.0f,
+                    (float)(visible.x2 - layer->buf_area.x1) + 1.0f,
+                    (float)(visible.y2 - layer->buf_area.y1) + 1.0f,
+                };
+                if(draw_dsc->rotation == 0) {
+                    lv_ambiq_scale_rect_t rect = {x0, y0, x2, y2};
+                    draw_quad = lv_ambiq_clip_scale_rect(&rect, &clip);
+                    x0 = x3 = rect.x1;
+                    x1 = x2 = rect.x2;
+                    y0 = y1 = rect.y1;
+                    y2 = y3 = rect.y2;
+                }
+                else {
+                    const lv_ambiq_scale_point_t quad[4] = {
+                        {x0, y0}, {x1, y1}, {x2, y2}, {x3, y3}
+                    };
+                    clipped_count = lv_ambiq_clip_scale_quad(quad, &clip, clipped);
+                    draw_quad = clipped_count >= 3;
+                }
+            }
+        }
+#endif
+
         //draw
 #if LV_AMBIQ_ROTATION_TILING
         const lv_draw_buf_t * dest_buf = layer->draw_buf;
@@ -416,10 +460,27 @@ static void lv_draw_ambiq_image_core(lv_draw_task_t * t,
             nema_enable_tiling(1);
         }
 #endif
-        nema_raster_quad_f(x0, y0,
-                           x1, y1,
-                           x2, y2,
-                           x3, y3);
+        if(draw_quad) {
+            if(clipped_count == 0) {
+                nema_raster_quad_f(x0, y0, x1, y1, x2, y2, x3, y3);
+            }
+            else if(clipped_count == 4) {
+                nema_raster_quad_f(clipped[0].x, clipped[0].y, clipped[1].x, clipped[1].y,
+                                   clipped[2].x, clipped[2].y, clipped[3].x, clipped[3].y);
+            }
+            else {
+                for(unsigned i = 1; i + 1 < clipped_count; ++i) {
+                    // Fan diagonals are shared interior edges: AA there would
+                    // leave a seam or blend twice. Only AA the polygon rim.
+                    nema_enable_aa(draw_dsc->antialias && i == 1,
+                                   draw_dsc->antialias,
+                                   draw_dsc->antialias && i + 2 == clipped_count, false);
+                    nema_raster_triangle_f(clipped[0].x, clipped[0].y,
+                                           clipped[i].x, clipped[i].y,
+                                           clipped[i + 1].x, clipped[i + 1].y);
+                }
+            }
+        }
 #if LV_AMBIQ_ROTATION_TILING
         // switch it off again: a later destination may not be a multiple of 4
         if(tiling) {
@@ -428,12 +489,8 @@ static void lv_draw_ambiq_image_core(lv_draw_task_t * t,
 #endif
     }
 
-
-
-
     // handle clip radius(TODO)
     // AL88 format is this same as NEMA_AL88?
-
 
     //Set antialias
     if(draw_dsc->antialias) {
