@@ -318,9 +318,25 @@ lv_result_t lv_bin_decoder_open(lv_image_decoder_t * decoder, lv_image_decoder_d
                 psram_resource_provider->move_dynamic_to_head(hash);
             }
             lv_memcpy(&header, base, sizeof(lv_image_header_t));
-            res = lv_draw_buf_init(decoded, header.w, header.h, header.cf, header.stride, \
-                                            (void *)(base + sizeof(lv_image_header_t)), \
-                                            header.w * header.h * lv_color_format_get_bpp(header.cf) / 8);
+
+            if(header.cf == LV_COLOR_FORMAT_NEMA_TSVG)
+            {
+                /* Same layout as static TSVG: header | uint32 len | tsvg data */
+                uint32_t len;
+                lv_memcpy(&len, base + sizeof(lv_image_header_t), sizeof(len));
+                if(len == 0U) {
+                    return LV_RESULT_INVALID;
+                }
+                res = lv_draw_buf_init(decoded, header.w, header.h, header.cf, header.stride, \
+                                       (void *)(base + sizeof(lv_image_header_t) + sizeof(len)), \
+                                       len);
+            }
+            else
+            {
+                res = lv_draw_buf_init(decoded, header.w, header.h, header.cf, header.stride, \
+                                                (void *)(base + sizeof(lv_image_header_t)), \
+                                                header.w * header.h * lv_color_format_get_bpp(header.cf) / 8);
+            }
         }
         else if(psram_src[0] == 'P'){
             uint32_t img_addr = psram_src_get_index(psram_src);
