@@ -597,8 +597,12 @@ static void lv_draw_ambiq_tsvg(lv_draw_task_t * t,
         .x2 = (int32_t)draw_buf->header.w - 1,
         .y2 = (int32_t)draw_buf->header.h - 1,
     };
+    //modify 2026 1111  can see  execute_drawing
+    lv_area_t task_clip = t->clip_area;//screen clip area
+    lv_area_move(&task_clip, -layer->buf_area.x1, -layer->buf_area.y1);//offset to layer buffer coordinates
     lv_area_t clipped_output_area;
-    if(!lv_area_intersect(&clipped_output_area, &output_area, &draw_buf_area)) {
+    if(!lv_area_intersect(&clipped_output_area, &output_area, &draw_buf_area) ||
+       !lv_area_intersect(&clipped_output_area, &clipped_output_area, &task_clip)) {
         lv_image_decoder_close(&decoder_dsc);
         return;
     }

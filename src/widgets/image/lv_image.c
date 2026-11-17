@@ -242,10 +242,7 @@ void lv_image_set_src(lv_obj_t * obj, const void * src)
         header.h = size.y;
     }
 
-    if(header.cf == LV_COLOR_FORMAT_NEMA_TSVG)
-    {
-        img->use_svg = true;
-    }
+    img->use_svg = header.cf == LV_COLOR_FORMAT_NEMA_TSVG;
     img->src_type = src_type;
     img->w        = header.w;
     img->h        = header.h;
@@ -1070,6 +1067,7 @@ static void reset_image_attributes(lv_obj_t * obj)
     img->w = 0;
     img->h = 0;
     img->cf = LV_COLOR_FORMAT_UNKNOWN;
+    img->use_svg = false;
     lv_obj_refresh_self_size(obj);
 }
 
